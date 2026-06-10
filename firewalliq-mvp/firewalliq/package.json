@@ -1,7 +1,0 @@
-{
-  "name": "firewalliq",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "description": "FirewallIQ — AI firewall compliance audit engine (MVP core)"
-}
