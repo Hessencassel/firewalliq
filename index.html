@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FirewallIQ — Firewall compliance audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a101c;
+    --surface: #111a2c;
+    --surface-2: #0e1626;
+    --border: #1f2c44;
+    --border-soft: #18233a;
+    --text: #e8eef8;
+    --text-dim: #93a1bd;
+    --text-faint: #64759a;
+    --accent: #38bdf8;
+    --accent-deep: #0ea5e9;
+    --crit: #f0476a;
+    --high: #fb8c42;
+    --med: #f2c94c;
+    --low: #5b9bd5;
+    --pass: #2bd4a0;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1100px 500px at 50% -10%, rgba(56, 189, 248, 0.07), transparent 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border-soft);
+    padding: 22px 0 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .mark {
+    width: 34px; height: 34px; flex: none;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: linear-gradient(180deg, #14213a, #0d1424);
+    display: grid; place-items: center;
+    position: relative; overflow: hidden;
+  }
+  .mark svg { width: 20px; height: 20px; display: block; }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; }
+  .wordmark span { color: var(--accent); }
+  .status-line {
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    letter-spacing: 0.02em;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pass); box-shadow: 0 0 8px var(--pass); }
+
+  /* Layout */
+  main { padding: 40px 0 80px; }
+  .lead {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(26px, 4.5vw, 38px);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+    max-width: 18ch;
+  }
+  .lead em { font-style: normal; color: var(--accent); }
+  .sub { color: var(--text-dim); font-size: 16px; margin: 0 0 34px; max-width: 56ch; }
+
+  /* Input panel */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .panel-head {
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .field label {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-faint);
+  }
+  select {
+    appearance: none;
+    background: var(--surface-2) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%2393a1bd' stroke-width='1.5'/></svg>") no-repeat right 12px center;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 10px 34px 10px 12px;
+    border-radius: 9px;
+    min-width: 210px;
+    cursor: pointer;
+  }
+  select:focus-visible, textarea:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .detect {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    display: flex; align-items: center; gap: 7px;
+    padding-bottom: 10px;
+  }
+  .detect b { color: var(--accent); font-weight: 600; }
+
+  .editor { position: relative; }
+  textarea {
+    width: 100%;
+    min-height: 300px;
+    resize: vertical;
+    border: 0;
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 18px 20px;
+    display: block;
+  }
+  textarea::placeholder { color: var(--text-faint); }
+  .editor.drag::after {
+    content: "Drop config file";
+    position: absolute; inset: 8px;
+    border: 1.5px dashed var(--accent);
+    border-radius: 12px;
+    background: rgba(56, 189, 248, 0.06);
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 13px; color: var(--accent);
+    pointer-events: none;
+  }
+  .panel-foot {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border-soft);
+    background: var(--surface);
+  }
+  .meta { font-family: var(--mono); font-size: 12px; color: var(--text-faint); }
+  .filebtn {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+  }
+  .filebtn:hover { color: var(--text); }
+  .grow { flex: 1; }
+  .btn {
+    font-family: var(--sans); font-weight: 600; font-size: 14px;
+    color: #04121e;
+    background: var(--accent);
+    border: 0; border-radius: 10px;
+    padding: 11px 22px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 9px;
+    transition: background .15s ease, transform .05s ease;
+  }
+  .btn:hover { background: #5cc9fb; }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.ghost {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn.ghost:hover { color: var(--text); border-color: var(--text-faint); background: transparent; }
+
+  .err {
+    margin-top: 16px;
+    border: 1px solid rgba(240, 71, 106, 0.4);
+    background: rgba(240, 71, 106, 0.08);
+    color: #ffc4d0;
+    border-radius: 11px;
+    padding: 13px 16px;
+    font-size: 14px;
+  }
+
+  /* Scanning */
+  .scan { margin-top: 28px; display: none; }
+  .scan.on { display: block; }
+  .scanbox {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-2);
+    height: 150px;
+    overflow: hidden;
+  }
+  .sweep {
+    position: absolute; top: 0; bottom: 0; width: 38%;
+    background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.16), transparent);
+    animation: sweep 1.5s linear infinite;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(var(--border-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
+    background-size: 30px 30px;
+    opacity: .5;
+  }
+  .scan-status {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    font-family: var(--mono); font-size: 13px; color: var(--text-dim);
+  }
+  .scan-status .lbl { color: var(--accent); }
+  @keyframes sweep { from { left: -38%; } to { left: 100%; } }
+
+  /* Report */
+  .report { margin-top: 32px; display: none; }
+  .report.on { display: block; }
+  .summary {
+    display: flex; gap: 28px; align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px;
+    flex-wrap: wrap;
+  }
+  .gauge { position: relative; width: 132px; height: 132px; flex: none; }
+  .gauge svg { transform: rotate(-90deg); }
+  .gauge .num {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .gauge .num b { font-family: var(--display); font-size: 38px; font-weight: 700; line-height: 1; }
+  .gauge .num small { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); margin-top: 4px; }
+  .summary-body { flex: 1; min-width: 240px; }
+  .verdict { font-family: var(--display); font-weight: 600; font-size: 21px; margin: 0 0 6px; }
+  .summary-body p { margin: 0; color: var(--text-dim); font-size: 15px; }
+
+  .tallies { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px 0 8px; }
+  .tally {
+    font-family: var(--mono); font-size: 12px;
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 5px 12px; color: var(--text-dim);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .tally i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  .findings { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .finding {
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 16px 18px;
+  }
+  .finding-top { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .sev {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 3px 8px; border-radius: 5px;
+  }
+  .f-title { font-family: var(--display); font-weight: 600; font-size: 16px; flex: 1; min-width: 200px; }
+  .ctrl {
+    font-family: var(--mono); font-size: 11.5px; color: var(--text-faint);
+    border: 1px solid var(--border-soft); border-radius: 6px; padding: 3px 8px;
+  }
+  .kv { margin-top: 13px; }
+  .kv .k { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-faint); margin-bottom: 5px; }
+  pre.code {
+    margin: 0; font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+    background: var(--surface-2); border: 1px solid var(--border-soft);
+    border-radius: 8px; padding: 11px 13px; overflow-x: auto;
+    white-space: pre-wrap; word-break: break-word; color: #cdd8ec;
+  }
+  .remwrap { position: relative; margin-top: 13px; }
+  .copy {
+    position: absolute; top: 8px; right: 8px;
+    font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 9px; cursor: pointer;
+  }
+  .copy:hover { color: var(--text); }
+
+  .actions { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+
+  footer {
+    border-top: 1px solid var(--border-soft);
+    padding: 22px 0 60px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+    display: flex; gap: 8px; align-items: center;
+  }
+  footer .lock { color: var(--pass); }
+
+  @media (max-width: 560px) {
+    select { min-width: 0; width: 100%; }
+    .field { width: 100%; }
+    .detect { margin-left: 0; padding-bottom: 0; }
+    .panel-head { gap: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sweep { animation: none; opacity: .5; }
+    .btn { transition: none; }
+  }
+
+  /* Print / PDF export */
+  @media print {
+    body { background: #fff; color: #111; }
+    header, footer, .panel, .scan, .actions, .sub, .lead { display: none !important; }
+    .report { margin: 0; display: block !important; }
+    .summary, .finding { border-color: #ccc; background: #fff; break-inside: avoid; }
+    .verdict, .f-title { color: #111; }
+    pre.code { background: #f6f6f6; color: #111; border-color: #ddd; }
+    .copy { display: none; }
+    .summary-body p, .ctrl, .tally, .kv .k { color: #444; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z" stroke="#38bdf8" stroke-width="1.4" stroke-linejoin="round"/>
+            <path d="M8.7 12.2l2.2 2.2 4.2-4.6" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="wordmark">Firewall<span>IQ</span></div>
+      </div>
+      <div class="status-line"><span class="dot"></span> engine ready · configs are audited in memory, never stored</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <h1 class="lead">Paste a config. Get an <em>audit-ready</em> report.</h1>
+      <p class="sub">Drop in a single device's running configuration, pick a framework, and get a scored compliance report with mapped controls and vendor-specific remediation — in about a minute.</p>
+
+      <section class="panel" aria-label="Audit input">
+        <div class="panel-head">
+          <div class="field">
+            <label for="vendor">Appliance</label>
+            <select id="vendor">
+              <option value="cisco_asa">Cisco ASA / FTD</option>
+              <option value="fortigate">FortiGate (FortiOS)</option>
+              <option value="palo_alto">Palo Alto (PAN-OS)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="framework">Framework</label>
+            <select id="framework">
+              <option value="pci_dss_4">PCI DSS v4.0</option>
+              <option value="cis">CIS Benchmarks</option>
+            </select>
+          </div>
+          <div class="detect" id="detect" hidden>detected <b id="detect-name"></b></div>
+        </div>
+
+        <div class="editor" id="editor">
+          <textarea id="config" spellcheck="false" placeholder="! Paste running-config here
+!
+hostname EDGE-FW-01
+access-list OUTSIDE_IN extended permit ip any any
+..."></textarea>
+        </div>
+
+        <div class="panel-foot">
+          <span class="meta" id="meta">0 lines</span>
+          <button class="filebtn" id="filebtn" type="button">or upload a file</button>
+          <input type="file" id="file" accept=".txt,.conf,.cfg,.xml,.log,.cli" hidden />
+          <span class="grow"></span>
+          <button class="btn" id="run" type="button" disabled>
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#04121e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Run audit
+          </button>
+        </div>
+      </section>
+
+      <div class="err" id="err" hidden></div>
+
+      <section class="scan" id="scan" aria-live="polite">
+        <div class="scanbox">
+          <div class="grid"></div>
+          <div class="sweep"></div>
+          <div class="scan-status">
+            <span class="lbl" id="scan-label">Reading configuration…</span>
+            <span id="scan-sub">FirewallIQ is analyzing your config</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="report" id="report" aria-live="polite">
+        <div class="summary">
+          <div class="gauge" id="gauge"></div>
+          <div class="summary-body">
+            <h2 class="verdict" id="verdict"></h2>
+            <p id="summary-text"></p>
+          </div>
+        </div>
+        <div class="tallies" id="tallies"></div>
+        <div class="findings" id="findings"></div>
+        <div class="actions">
+          <button class="btn" id="export" type="button">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0L5 7m3 3l3-3M3 13h10" stroke="#04121e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Export report
+          </button>
+          <button class="btn ghost" id="again" type="button">New audit</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap" style="display:flex;gap:8px;align-items:center;">
+      <span class="lock">●</span> FirewallIQ never stores your configurations. Each audit runs server-side and is discarded when it finishes.
+    </div>
+  </footer>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const SEV = {
+    critical: { c: "var(--crit)", label: "Critical" },
+    high:     { c: "var(--high)", label: "High" },
+    medium:   { c: "var(--med)",  label: "Medium" },
+    low:      { c: "var(--low)",  label: "Low" },
+    pass:     { c: "var(--pass)", label: "Pass" },
+  };
+  const ORDER = ["critical", "high", "medium", "low", "pass"];
+
+  const config = $("config"), vendorSel = $("vendor"), runBtn = $("run"), meta = $("meta");
+  const editor = $("editor");
+
+  function refreshMeta() {
+    const v = config.value;
+    const lines = v ? v.split("\n").length : 0;
+    meta.textContent = lines + (lines === 1 ? " line" : " lines");
+    runBtn.disabled = v.trim().length === 0;
+  }
+
+  // Vendor auto-detection from config fingerprints
+  function detectVendor(text) {
+    const t = text.slice(0, 4000);
+    if (/^\s*:\s*Saved|ASA Version|FTD Version|^access-list .+ extended /m.test(t)) return "cisco_asa";
+    if (/config (system global|firewall policy)|^\s*set (status|allowaccess|logtraffic) /m.test(t) || (/\bedit \d+/.test(t) && /\bnext\b/.test(t))) return "fortigate";
+    if (/<config\s+version=|<entry name=|<rulebase>|<\/security>/.test(t)) return "palo_alto";
+    if (/set (deviceconfig|rulebase|network|zone) /.test(t)) return "palo_alto";
+    return null;
+  }
+  function showDetect(v) {
+    const d = $("detect");
+    if (!v) { d.hidden = true; return; }
+    const name = { cisco_asa: "Cisco ASA / FTD", fortigate: "FortiGate", palo_alto: "Palo Alto" }[v];
+    $("detect-name").textContent = name;
+    d.hidden = false;
+  }
+
+  config.addEventListener("input", () => {
+    refreshMeta();
+    const v = detectVendor(config.value);
+    if (v) { vendorSel.value = v; showDetect(v); } else { showDetect(null); }
+  });
+
+  // File upload + drag/drop
+  $("filebtn").addEventListener("click", () => $("file").click());
+  $("file").addEventListener("change", (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { config.value = r.result; config.dispatchEvent(new Event("input")); };
+    r.readAsText(f);
+  });
+  ["dragenter", "dragover"].forEach((ev) =>
+    editor.addEventListener(ev, (e) => { e.preventDefault(); editor.classList.add("drag"); })
+  );
+  ["dragleave", "drop"].forEach((ev) =>
+    editor.addEventListener(ev, (e) => { e.preventDefault(); editor.classList.remove("drag"); })
+  );
+  editor.addEventListener("drop", (e) => {
+    const f = e.dataTransfer.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { config.value = r.result; config.dispatchEvent(new Event("input")); };
+    r.readAsText(f);
+  });
+
+  // Scanning status rotation
+  const SCAN_STEPS = [
+    "Reading configuration…",
+    "Mapping access policy…",
+    "Checking management plane…",
+    "Reviewing logging & crypto…",
+    "Mapping findings to controls…",
+    "Scoring…",
+  ];
+  let scanTimer = null;
+  function startScan() {
+    let i = 0;
+    $("scan-label").textContent = SCAN_STEPS[0];
+    scanTimer = setInterval(() => {
+      i = Math.min(i + 1, SCAN_STEPS.length - 1);
+      $("scan-label").textContent = SCAN_STEPS[i];
+    }, 2600);
+  }
+  function stopScan() { clearInterval(scanTimer); scanTimer = null; }
+
+  function setState(state) {
+    $("scan").classList.toggle("on", state === "scan");
+    $("report").classList.toggle("on", state === "report");
+  }
+
+  function showError(msg) {
+    const e = $("err");
+    e.textContent = msg;
+    e.hidden = false;
+  }
+  function clearError() { $("err").hidden = true; }
+
+  // Run the audit (streams from the function, parses JSON on completion)
+  runBtn.addEventListener("click", async () => {
+    clearError();
+    setState("scan");
+    startScan();
+    runBtn.disabled = true;
+
+    let raw = "";
+    try {
+      const res = await fetch("/.netlify/functions/audit", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          config: config.value,
+          vendor: vendorSel.value,
+          framework: $("framework").value,
+        }),
+      });
+
+      const ct = res.headers.get("content-type") || "";
+      if (!res.ok || ct.includes("application/json")) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "The audit could not be completed.");
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        raw += decoder.decode(value, { stream: true });
+      }
+
+      const report = parseReport(raw);
+      if (!report) throw new Error("The audit engine returned a response that couldn't be read. Try running it again.");
+      render(report);
+      stopScan();
+      setState("report");
+      $("report").scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (err) {
+      stopScan();
+      setState(null);
+      showError(err.message || "Something went wrong.");
+    } finally {
+      runBtn.disabled = config.value.trim().length === 0;
+    }
+  });
+
+  function parseReport(text) {
+    let t = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+    try { return JSON.parse(t); } catch {}
+    const s = t.indexOf("{"), e = t.lastIndexOf("}");
+    if (s !== -1 && e !== -1) { try { return JSON.parse(t.slice(s, e + 1)); } catch {} }
+    return null;
+  }
+
+  function scoreColor(score) {
+    if (score >= 85) return "var(--pass)";
+    if (score >= 70) return "var(--low)";
+    if (score >= 50) return "var(--med)";
+    if (score >= 30) return "var(--high)";
+    return "var(--crit)";
+  }
+
+  function render(r) {
+    const score = Math.max(0, Math.min(100, parseInt(r.score, 10) || 0));
+    const col = scoreColor(score);
+    const radius = 56, circ = 2 * Math.PI * radius;
+    const off = circ * (1 - score / 100);
+    $("gauge").innerHTML =
+      '<svg width="132" height="132" viewBox="0 0 132 132">' +
+        '<circle cx="66" cy="66" r="' + radius + '" fill="none" stroke="var(--border)" stroke-width="9"/>' +
+        '<circle cx="66" cy="66" r="' + radius + '" fill="none" stroke="' + col + '" stroke-width="9" ' +
+          'stroke-linecap="round" stroke-dasharray="' + circ + '" stroke-dashoffset="' + off + '"/>' +
+      '</svg>' +
+      '<div class="num"><b style="color:' + col + '">' + score + '</b><small>score</small></div>';
+
+    $("verdict").textContent = r.score_label || "Audit complete";
+    $("summary-text").textContent = r.summary || "";
+
+    const findings = Array.isArray(r.findings) ? r.findings.slice() : [];
+    findings.sort((a, b) => ORDER.indexOf(a.severity) - ORDER.indexOf(b.severity));
+
+    // tallies
+    const counts = {};
+    findings.forEach((f) => { counts[f.severity] = (counts[f.severity] || 0) + 1; });
+    $("tallies").innerHTML = ORDER.filter((s) => counts[s]).map((s) =>
+      '<span class="tally"><i style="background:' + SEV[s].c + '"></i>' + counts[s] + ' ' + SEV[s].label.toLowerCase() + '</span>'
+    ).join("");
+
+    // findings
+    $("findings").innerHTML = findings.map((f, idx) => {
+      const sev = SEV[f.severity] || SEV.low;
+      const rem = (f.remediation || "").trim();
+      const remBlock = rem
+        ? '<div class="remwrap"><div class="kv"><div class="k">Remediation</div>' +
+            '<pre class="code" id="rem' + idx + '">' + esc(rem) + '</pre></div>' +
+            '<button class="copy" data-rem="rem' + idx + '">Copy</button></div>'
+        : "";
+      return '<article class="finding" style="border-left-color:' + sev.c + '">' +
+        '<div class="finding-top">' +
+          '<span class="sev" style="color:' + sev.c + '">' +
+          sev.label + '</span>' +
+          '<span class="f-title">' + esc(f.title || "Finding") + '</span>' +
+          (f.control ? '<span class="ctrl">' + esc(f.control) + '</span>' : '') +
+        '</div>' +
+        (f.evidence ? '<div class="kv"><div class="k">Evidence</div><pre class="code">' + esc(f.evidence) + '</pre></div>' : '') +
+        remBlock +
+      '</article>';
+    }).join("");
+
+    // fix severity badge background (needs rgba, not var)
+    document.querySelectorAll(".sev").forEach((el) => {
+      const c = getComputedStyle(el).color;
+      el.style.background = c.replace("rgb(", "rgba(").replace(")", ", 0.12)");
+    });
+
+    document.querySelectorAll(".copy").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const code = $(btn.getAttribute("data-rem"));
+        navigator.clipboard.writeText(code.textContent).then(() => {
+          btn.textContent = "Copied";
+          setTimeout(() => (btn.textContent = "Copy"), 1400);
+        });
+      });
+    });
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  }
+
+  $("export").addEventListener("click", () => window.print());
+  $("again").addEventListener("click", () => {
+    setState(null);
+    clearError();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    config.focus();
+  });
+
+  refreshMeta();
+</script>
+</body>
+</html>
