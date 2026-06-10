@@ -363,6 +363,12 @@
               <option value="cisco_asa">Cisco ASA / FTD</option>
               <option value="fortigate">FortiGate (FortiOS)</option>
               <option value="palo_alto">Palo Alto (PAN-OS)</option>
+              <option value="checkpoint">Check Point (Gaia)</option>
+              <option value="sonicwall">SonicWall (SonicOS)</option>
+              <option value="sophos">Sophos Firewall</option>
+              <option value="watchguard">WatchGuard Firebox</option>
+              <option value="juniper_srx">Juniper SRX (Junos)</option>
+              <option value="pfsense">pfSense / OPNsense</option>
             </select>
           </div>
           <div class="field">
@@ -458,17 +464,27 @@ access-list OUTSIDE_IN extended permit ip any any
 
   // Vendor auto-detection from config fingerprints
   function detectVendor(text) {
-    const t = text.slice(0, 4000);
+    const t = text.slice(0, 6000);
+    if (/<(pfsense|opnsense)>/i.test(t)) return "pfsense";
+    if (/<config\s+version=|<entry name=|<rulebase>/.test(t)) return "palo_alto";
     if (/^\s*:\s*Saved|ASA Version|FTD Version|^access-list .+ extended /m.test(t)) return "cisco_asa";
     if (/config (system global|firewall policy)|^\s*set (status|allowaccess|logtraffic) /m.test(t) || (/\bedit \d+/.test(t) && /\bnext\b/.test(t))) return "fortigate";
-    if (/<config\s+version=|<entry name=|<rulebase>|<\/security>/.test(t)) return "palo_alto";
+    if (/\b(ge|xe|et|fxp)-\d+\/\d+\/\d+|set security (policies|zones|ike)|^security \{/m.test(t)) return "juniper_srx";
     if (/set (deviceconfig|rulebase|network|zone) /.test(t)) return "palo_alto";
+    if (/SonicOS|sonicwall/i.test(t)) return "sonicwall";
+    if (/<FirewallRule>|sophos firewall|\bSFOS\b/i.test(t)) return "sophos";
+    if (/watchguard|fireware/i.test(t)) return "watchguard";
+    if (/check ?point|set expert-password/i.test(t)) return "checkpoint";
     return null;
   }
   function showDetect(v) {
     const d = $("detect");
     if (!v) { d.hidden = true; return; }
-    const name = { cisco_asa: "Cisco ASA / FTD", fortigate: "FortiGate", palo_alto: "Palo Alto" }[v];
+    const name = {
+      cisco_asa: "Cisco ASA / FTD", fortigate: "FortiGate", palo_alto: "Palo Alto",
+      checkpoint: "Check Point", sonicwall: "SonicWall", sophos: "Sophos",
+      watchguard: "WatchGuard", juniper_srx: "Juniper SRX", pfsense: "pfSense / OPNsense"
+    }[v];
     $("detect-name").textContent = name;
     d.hidden = false;
   }
