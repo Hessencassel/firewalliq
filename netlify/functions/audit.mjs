@@ -5,7 +5,7 @@
 
 const MODEL = process.env.FIREWALLIQ_MODEL || "claude-sonnet-4-6";
 const ANTHROPIC_VERSION = "2023-06-01";
-const MAX_TOKENS = 4000;
+const MAX_TOKENS = 6000;
 
 const VENDORS = {
   cisco_asa:   "Cisco ASA / FTD (Firepower Threat Defense)",
