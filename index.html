@@ -348,14 +348,45 @@
   /* Print / PDF export */
   @media print {
     body { background: #fff; color: #111; }
-    header, footer, .panel, .scan, .actions, .sub, .lead { display: none !important; }
+    header, footer, .panel, .scan, .actions, .sub, .lead, .trust-strip { display: none !important; }
     .report { margin: 0; display: block !important; }
     .summary, .finding { border-color: #ccc; background: #fff; break-inside: avoid; }
     .verdict, .f-title { color: #111; }
     pre.code { background: #f6f6f6; color: #111; border-color: #ddd; }
     .copy { display: none; }
     .summary-body p, .ctrl, .tally, .kv .k { color: #444; }
+
+    /* Branded PDF header */
+    .report::before {
+      content: "";
+      display: block;
+      border-bottom: 2px solid #0ea5e9;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+    }
+    .pdf-brand {
+      display: flex !important;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .pdf-brand-name {
+      font-family: var(--display);
+      font-size: 22px;
+      font-weight: 700;
+      color: #0ea5e9;
+    }
+    .pdf-brand-name span { color: #111; }
+    .pdf-meta {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 20px;
+      font-family: monospace;
+    }
   }
+
+  /* Shown only during print */
+  .pdf-brand, .pdf-meta { display: none; }
 </style>
 </head>
 <body>
@@ -444,6 +475,14 @@ access-list OUTSIDE_IN extended permit ip any any
       </section>
 
       <section class="report" id="report" aria-live="polite">
+        <div class="pdf-brand">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z" stroke="#0ea5e9" stroke-width="1.4" stroke-linejoin="round"/>
+            <path d="M8.7 12.2l2.2 2.2 4.2-4.6" stroke="#0ea5e9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="pdf-brand-name">Firewall<span>IQ</span></span>
+        </div>
+        <div class="pdf-meta" id="pdf-meta">Compliance Audit Report · firewalliq.netlify.app</div>
         <div class="summary">
           <div class="gauge" id="gauge"></div>
           <div class="summary-body">
@@ -719,10 +758,41 @@ access-list OUTSIDE_IN extended permit ip any any
     return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
   }
 
-  $("export").addEventListener("click", () => window.print());
+  // Extract hostname from the config for the PDF filename
+  function extractHostname() {
+    const text = config.value;
+    const patterns = [
+      /^hostname\s+(\S+)/m,
+      /^set hostname\s+"?([^"\n]+)"?/m,
+      /^set devicename\s+"?([^"\n]+)"?/m,
+      /<hostname>([^<]+)<\/hostname>/i,
+    ];
+    for (const p of patterns) {
+      const m = text.match(p);
+      if (m) return m[1].trim().replace(/[^a-zA-Z0-9_-]/g, "-");
+    }
+    return "firewall";
+  }
+
+  $("export").addEventListener("click", () => {
+    const hostname = extractHostname();
+    const date = new Date().toISOString().slice(0, 10);
+    $("pdf-meta").textContent = `Compliance Audit Report · ${hostname} · ${date} · firewalliq.netlify.app`;
+    document.title = `FirewallIQ-Audit-${hostname}-${date}`;
+    window.print();
+    setTimeout(() => {
+      document.title = "FirewallIQ — Firewall Compliance Audit";
+      $("pdf-meta").textContent = "Compliance Audit Report · firewalliq.netlify.app";
+    }, 2000);
+  });
+
   $("again").addEventListener("click", () => {
     setState(null);
     clearError();
+    config.value = "";
+    refreshMeta();
+    vendorSel.selectedIndex = 0;
+    $("detect").hidden = true;
     window.scrollTo({ top: 0, behavior: "smooth" });
     config.focus();
   });
