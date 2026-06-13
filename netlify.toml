@@ -27,3 +27,8 @@
   from = "/success"
   to = "/success.html"
   status = 200
+
+[[redirects]]
+  from = "/user-plan"
+  to = "/.netlify/functions/user-plan"
+  status = 200
