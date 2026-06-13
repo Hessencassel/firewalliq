@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Payment Successful — FirewallIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='5' fill='%230a101c'/><path d='M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z' stroke='%2338bdf8' stroke-width='1.4' stroke-linejoin='round' fill='none'/><path d='M8.7 12.2l2.2 2.2 4.2-4.6' stroke='%2338bdf8' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" />
+<style>
+  :root {
+    --bg: #0a101c;
+    --surface: #111a2c;
+    --surface-2: #0e1626;
+    --border: #1f2c44;
+    --border-soft: #18233a;
+    --text: #e8eef8;
+    --text-dim: #93a1bd;
+    --text-faint: #64759a;
+    --accent: #38bdf8;
+    --pass: #2bd4a0;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --sans: "IBM Plex Sans", system-ui, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1100px 500px at 50% -10%, rgba(56,189,248,0.07), transparent 70%), var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+
+  header {
+    border-bottom: 1px solid var(--border-soft);
+    padding: 22px 0 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .mark {
+    width: 34px; height: 34px; flex: none;
+    border: 1px solid var(--border); border-radius: 9px;
+    background: linear-gradient(180deg, #14213a, #0d1424);
+    display: grid; place-items: center;
+  }
+  .mark svg { width: 20px; height: 20px; display: block; }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; color: var(--text); }
+  .wordmark span { color: var(--accent); }
+
+  main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px;
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .check {
+    width: 64px; height: 64px;
+    background: rgba(43, 212, 160, 0.1);
+    border: 1px solid rgba(43, 212, 160, 0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 28px;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+  }
+
+  .sub {
+    color: var(--text-dim);
+    font-size: 15px;
+    margin: 0 0 32px;
+    line-height: 1.6;
+  }
+
+  .email-notice {
+    background: rgba(43, 212, 160, 0.07);
+    border: 1px solid rgba(43, 212, 160, 0.2);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 32px;
+    line-height: 1.6;
+    text-align: left;
+  }
+  .email-notice strong { color: var(--pass); }
+
+  .token-section {
+    margin-bottom: 28px;
+    text-align: left;
+  }
+  .token-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+  .token-input-wrap {
+    position: relative;
+  }
+  .token-input {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 12px 44px 12px 14px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+  }
+  .token-input:focus { border-color: var(--accent); }
+  .token-input::placeholder { color: var(--text-faint); }
+
+  .btn {
+    display: block;
+    width: 100%;
+    background: var(--accent);
+    color: #04121e;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 14px 24px;
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: background .15s ease;
+    margin-bottom: 12px;
+  }
+  .btn:hover { background: #5cc9fb; }
+  .btn.ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn.ghost:hover { color: var(--text); border-color: var(--text-faint); }
+
+  .note {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 20px;
+    line-height: 1.6;
+  }
+  .note a { color: var(--text-faint); }
+
+  footer {
+    border-top: 1px solid var(--border-soft);
+    padding: 22px 0 40px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  footer a { color: var(--text-faint); text-underline-offset: 3px; }
+
+  @media (max-width: 560px) {
+    .card { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a href="/" class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z" stroke="#38bdf8" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M8.7 12.2l2.2 2.2 4.2-4.6" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="wordmark">Firewall<span>IQ</span></div>
+    </a>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="check">✓</div>
+    <h1>You're all set.</h1>
+    <p class="sub" id="plan-sub">Your FirewallIQ subscription is active.</p>
+
+    <div class="email-notice">
+      <strong>Check your email.</strong> Your audit token has been sent to the address you used at checkout. It may take a minute or two to arrive. Check your spam folder if you do not see it.
+    </div>
+
+    <div class="token-section">
+      <div class="token-label">Already have your token? Enter it below</div>
+      <div class="token-input-wrap">
+        <input
+          type="text"
+          class="token-input"
+          id="token-input"
+          placeholder="Paste your audit token here"
+          spellcheck="false"
+          autocomplete="off"
+        />
+      </div>
+    </div>
+
+    <button class="btn" id="start-btn" onclick="startAudit()">Start auditing →</button>
+    <a href="/" class="btn ghost">Back to home</a>
+
+    <p class="note">
+      Need help? <a href="mailto:support@firewalliq.io">support@firewalliq.io</a><br>
+      Manage your subscription at <a href="https://billing.stripe.com" target="_blank">billing.stripe.com</a>
+    </p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+    <span>● FirewallIQ never stores your configurations.</span>
+    <a href="/terms">Terms</a>
+    <a href="/privacy">Privacy</a>
+    <span style="margin-left:auto;">© 2026 Treesh Tech LLC</span>
+  </div>
+</footer>
+
+<script>
+  // Read plan from URL params
+  const params = new URLSearchParams(window.location.search);
+  const plan = params.get("plan");
+  const planLabel = plan === "team" ? "FirewallIQ Team" : "FirewallIQ Pro";
+  document.getElementById("plan-sub").textContent =
+    `Your ${planLabel} subscription is active. Your audit token is on its way.`;
+
+  function startAudit() {
+    const token = document.getElementById("token-input").value.trim();
+    if (!token) {
+      alert("Please enter your audit token first. Check your email.");
+      return;
+    }
+    // Store token in sessionStorage and redirect to audit tool
+    sessionStorage.setItem("firewalliq_token", token);
+    sessionStorage.setItem("firewalliq_plan", plan || "pro");
+    window.location.href = "/#audit";
+  }
+
+  // Allow Enter key in token input
+  document.getElementById("token-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") startAudit();
+  });
+</script>
+
+</body>
+</html>
