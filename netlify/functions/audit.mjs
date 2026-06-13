@@ -266,8 +266,7 @@ export default async (req) => {
         system: buildSystem(vendor, framework),
         stream: true,
         messages: [
-          { role: "user",      content: buildUser(vendor, framework, scrubbed) },
-          { role: "assistant", content: "{" },
+          { role: "user", content: buildUser(vendor, framework, scrubbed) },
         ],
       }),
     });
