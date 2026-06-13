@@ -7,6 +7,8 @@ const MODEL = process.env.FIREWALLIQ_MODEL || "claude-sonnet-4-6";
 const ANTHROPIC_VERSION = "2023-06-01";
 const MAX_TOKENS = 8000;
 
+const SITE_URL = "https://firewalliq.io";
+
 const VENDORS = {
   cisco_asa:   "Cisco ASA / FTD (Firepower Threat Defense)",
   fortigate:   "Fortinet FortiGate (FortiOS)",
@@ -278,10 +280,30 @@ export default async (req) => {
     return json({ error: "Invalid request body." }, 400);
   }
 
-  const { config, vendor, framework } = body || {};
+  const { config, vendor, framework, token } = body || {};
   if (!config || !String(config).trim()) return json({ error: "Paste a configuration to audit." }, 400);
   if (!VENDORS[vendor])    return json({ error: `Unsupported vendor: ${vendor}` }, 400);
   if (!FRAMEWORKS[framework]) return json({ error: `Unsupported framework: ${framework}` }, 400);
+
+  if (!token || !token.trim()) {
+    return json({ error: "An audit token is required. Purchase a plan at firewalliq.io to get your token." }, 401);
+  }
+
+  try {
+    const validateRes = await fetch(`${SITE_URL}/.netlify/functions/validate-token`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token: token.trim() }),
+    });
+    const validateData = await validateRes.json();
+    if (!validateData.valid) {
+      return json({ error: validateData.error || "Invalid or expired token. Check your email for your audit token." }, 401);
+    }
+    console.log(`FIREWALLIQ: token valid — plan=${validateData.plan}`);
+  } catch (e) {
+    console.error("FIREWALLIQ: token validation error:", e.message);
+    return json({ error: "Could not validate token. Try again." }, 502);
+  }
 
   const scrubbed = scrubSecrets(config);
   console.log(`FIREWALLIQ: audit started — vendor=${vendor} framework=${framework} config_chars=${scrubbed.length}`);
