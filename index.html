@@ -1266,7 +1266,7 @@ access-list OUTSIDE_IN extended permit ip any any
             <li>PDF export with FirewallIQ branding</li>
             <li>Priority processing</li>
           </ul>
-          <a href="#audit" class="btn" style="width:100%;justify-content:center;">Get started</a>
+          <button class="btn" onclick="startCheckout('pro')" style="width:100%;justify-content:center;">Get started</button>
         </div>
 
         <!-- Team -->
@@ -1285,7 +1285,7 @@ access-list OUTSIDE_IN extended permit ip any any
             <li>Team seat sharing (up to 5)</li>
             <li>Email support</li>
           </ul>
-          <a href="#audit" class="btn ghost" style="width:100%;justify-content:center;">Get started</a>
+          <button class="btn ghost" onclick="startCheckout('team')" style="width:100%;justify-content:center;">Get started</button>
         </div>
 
       </div>
@@ -1723,6 +1723,31 @@ access-list OUTSIDE_IN extended permit ip any any
     run();
     setInterval(run, CYCLE);
   })();
+
+async function startCheckout(plan) {
+  const btn = event.currentTarget;
+  btn.disabled = true;
+  btn.textContent = "Redirecting...";
+  try {
+    const res = await fetch("/.netlify/functions/checkout", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert("Something went wrong. Please try again.");
+      btn.disabled = false;
+      btn.textContent = "Get started";
+    }
+  } catch (e) {
+    alert("Something went wrong. Please try again.");
+    btn.disabled = false;
+    btn.textContent = "Get started";
+  }
+}
 </script>
 </body>
 </html>
