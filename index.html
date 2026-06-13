@@ -3,7 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FirewallIQ — Firewall compliance audit</title>
+<title>FirewallIQ — Firewall Compliance Audit</title>
+<meta name="description" content="Paste a firewall running-config and get an instant scored compliance report with mapped controls and copy-paste remediation. Supports Cisco ASA, FortiGate, Palo Alto, and 7 more platforms. Zero config storage." />
+<meta property="og:title" content="FirewallIQ — Firewall Compliance Audit" />
+<meta property="og:description" content="AI-powered firewall compliance auditing. Paste a config, get a scored PCI DSS or CIS Benchmark report in under a minute. Your configs are never stored." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://firewalliq.netlify.app" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="FirewallIQ — Firewall Compliance Audit" />
+<meta name="twitter:description" content="AI-powered firewall compliance auditing. Paste a config, get a scored PCI DSS or CIS Benchmark report in under a minute. Your configs are never stored." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='5' fill='%230a101c'/><path d='M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z' stroke='%2338bdf8' stroke-width='1.4' stroke-linejoin='round' fill='none'/><path d='M8.7 12.2l2.2 2.2 4.2-4.6' stroke='%2338bdf8' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -87,6 +96,21 @@
   }
   .lead em { font-style: normal; color: var(--accent); }
   .sub { color: var(--text-dim); font-size: 16px; margin: 0 0 34px; max-width: 56ch; }
+
+  .trust-strip {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: rgba(43, 212, 160, 0.07);
+    border: 1px solid rgba(43, 212, 160, 0.2);
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .trust-strip strong { color: var(--pass); font-weight: 600; }
+  .trust-strip a { color: var(--pass); text-underline-offset: 3px; }
+  .trust-icon { font-size: 15px; flex: none; margin-top: 1px; }
 
   /* Input panel */
   .panel {
@@ -353,7 +377,11 @@
   <main>
     <div class="wrap">
       <h1 class="lead">Paste a config. Get an <em>audit-ready</em> report.</h1>
-      <p class="sub">Drop in a single device's running configuration, pick a framework, and get a scored compliance report with mapped controls and vendor-specific remediation — in about a minute.</p>
+      <p class="sub">Drop in a single device's running configuration, pick a framework, and get a scored compliance report with mapped controls and vendor-specific remediation, in about a minute.</p>
+      <div class="trust-strip">
+        <span class="trust-icon">🔒</span>
+        <span>Your configs are <strong>never stored.</strong> Each audit runs in memory and is discarded the moment it completes. <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">API privacy policy →</a></span>
+      </div>
 
       <section class="panel" aria-label="Audit input">
         <div class="panel-head">
@@ -369,6 +397,7 @@
               <option value="watchguard">WatchGuard Firebox</option>
               <option value="juniper_srx">Juniper SRX (Junos)</option>
               <option value="pfsense">pfSense / OPNsense</option>
+              <option value="ubiquiti">Ubiquiti UniFi (VyOS)</option>
             </select>
           </div>
           <div class="field">
@@ -466,6 +495,7 @@ access-list OUTSIDE_IN extended permit ip any any
   function detectVendor(text) {
     const t = text.slice(0, 6000);
     if (/<(pfsense|opnsense)>/i.test(t)) return "pfsense";
+    if (/ubnt|ubiquiti|unifi|EdgeOS|vyatta|set system host-name|firewall name \w+ rule/i.test(t)) return "ubiquiti";
     if (/<config\s+version=|<entry name=|<rulebase>/.test(t)) return "palo_alto";
     if (/^\s*:\s*Saved|ASA Version|FTD Version|^access-list .+ extended /m.test(t)) return "cisco_asa";
     if (/config (system global|firewall policy)|^\s*set (status|allowaccess|logtraffic) /m.test(t) || (/\bedit \d+/.test(t) && /\bnext\b/.test(t))) return "fortigate";
@@ -483,7 +513,8 @@ access-list OUTSIDE_IN extended permit ip any any
     const name = {
       cisco_asa: "Cisco ASA / FTD", fortigate: "FortiGate", palo_alto: "Palo Alto",
       checkpoint: "Check Point", sonicwall: "SonicWall", sophos: "Sophos",
-      watchguard: "WatchGuard", juniper_srx: "Juniper SRX", pfsense: "pfSense / OPNsense"
+      watchguard: "WatchGuard", juniper_srx: "Juniper SRX", pfsense: "pfSense / OPNsense",
+      ubiquiti: "Ubiquiti UniFi (VyOS)"
     }[v];
     $("detect-name").textContent = name;
     d.hidden = false;
