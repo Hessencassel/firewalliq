@@ -8,7 +8,7 @@
 <meta property="og:title" content="FirewallIQ — Firewall Compliance Audit" />
 <meta property="og:description" content="AI-powered firewall compliance auditing. Paste a config, get a scored PCI DSS or CIS Benchmark report in under a minute. Your configs are never stored." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://firewalliq.netlify.app" />
+<meta property="og:url" content="https://firewalliq.io" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="FirewallIQ — Firewall Compliance Audit" />
 <meta name="twitter:description" content="AI-powered firewall compliance auditing. Paste a config, get a scored PCI DSS or CIS Benchmark report in under a minute. Your configs are never stored." />
@@ -1219,7 +1219,7 @@ access-list OUTSIDE_IN extended permit ip any any
           </svg>
           <span class="pdf-brand-name">Firewall<span>IQ</span></span>
         </div>
-        <div class="pdf-meta" id="pdf-meta">Compliance Audit Report · firewalliq.netlify.app</div>
+        <div class="pdf-meta" id="pdf-meta">Compliance Audit Report · firewalliq.io</div>
         <div class="summary">
           <div class="gauge" id="gauge"></div>
           <div class="summary-body">
@@ -1586,12 +1586,12 @@ access-list OUTSIDE_IN extended permit ip any any
   $("export").addEventListener("click", () => {
     const hostname = extractHostname();
     const date = new Date().toISOString().slice(0, 10);
-    $("pdf-meta").textContent = `Compliance Audit Report · ${hostname} · ${date} · firewalliq.netlify.app`;
+    $("pdf-meta").textContent = `Compliance Audit Report · ${hostname} · ${date} · firewalliq.io`;
     document.title = `FirewallIQ-Audit-${hostname}-${date}`;
     window.print();
     setTimeout(() => {
       document.title = "FirewallIQ — Firewall Compliance Audit";
-      $("pdf-meta").textContent = "Compliance Audit Report · firewalliq.netlify.app";
+      $("pdf-meta").textContent = "Compliance Audit Report · firewalliq.io";
     }, 2000);
   });
 
