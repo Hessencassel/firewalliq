@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sample Audit Report — FirewallIQ</title>
+<meta name="description" content="See a real FirewallIQ audit report. Cisco ASA firewall audited against PCI DSS v4.0 — scored, evidence-based, with copy-paste CLI remediation." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='5' fill='%230a101c'/><path d='M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z' stroke='%2338bdf8' stroke-width='1.4' stroke-linejoin='round' fill='none'/><path d='M8.7 12.2l2.2 2.2 4.2-4.6' stroke='%2338bdf8' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" />
+<style>
+  :root {
+    --bg: #0a101c;
+    --surface: #111a2c;
+    --surface-2: #0e1626;
+    --border: #1f2c44;
+    --border-soft: #18233a;
+    --text: #e8eef8;
+    --text-dim: #93a1bd;
+    --text-faint: #64759a;
+    --accent: #38bdf8;
+    --accent-deep: #0ea5e9;
+    --crit: #f0476a;
+    --high: #fb8c42;
+    --med: #f2c94c;
+    --low: #5b9bd5;
+    --pass: #2bd4a0;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: radial-gradient(1100px 500px at 50% -10%, rgba(56,189,248,0.07), transparent 70%), var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+
+  header {
+    border-bottom: 1px solid var(--border-soft);
+    padding: 22px 0 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .mark {
+    width: 34px; height: 34px; flex: none;
+    border: 1px solid var(--border); border-radius: 9px;
+    background: linear-gradient(180deg, #14213a, #0d1424);
+    display: grid; place-items: center;
+  }
+  .mark svg { width: 20px; height: 20px; display: block; }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; color: var(--text); }
+  .wordmark span { color: var(--accent); }
+
+  .sample-banner {
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin: 32px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .sample-banner strong { color: var(--accent); }
+  .sample-banner a {
+    margin-left: auto;
+    background: var(--accent);
+    color: #04121e;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .sample-banner a:hover { background: #5cc9fb; }
+
+  main { padding: 32px 0 80px; }
+
+  /* Summary */
+  .summary {
+    display: flex; gap: 28px; align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .gauge { position: relative; width: 132px; height: 132px; flex: none; }
+  .gauge svg { transform: rotate(-90deg); display: block; }
+  .gauge .num {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .gauge .num b { font-family: var(--display); font-size: 38px; font-weight: 700; line-height: 1; }
+  .gauge .num small { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); margin-top: 4px; }
+  .summary-body { flex: 1; min-width: 240px; }
+  .verdict { font-family: var(--display); font-weight: 600; font-size: 21px; margin: 0 0 6px; color: var(--crit); }
+  .summary-body p { margin: 0; color: var(--text-dim); font-size: 15px; line-height: 1.6; }
+
+  .tallies { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px 0 8px; }
+  .tally {
+    font-family: var(--mono); font-size: 12px;
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 5px 12px; color: var(--text-dim);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .tally i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  /* Findings */
+  .findings { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .finding {
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 16px 18px;
+  }
+  .finding-top { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .sev {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 3px 8px; border-radius: 5px;
+    white-space: nowrap;
+  }
+  .f-title { font-family: var(--display); font-weight: 600; font-size: 16px; flex: 1; min-width: 200px; }
+  .ctrl {
+    font-family: var(--mono); font-size: 11.5px; color: var(--text-faint);
+    border: 1px solid var(--border-soft); border-radius: 6px; padding: 3px 8px;
+    white-space: nowrap;
+  }
+  .kv { margin-top: 13px; }
+  .kv .k { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-faint); margin-bottom: 5px; }
+  pre.code {
+    margin: 0; font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+    background: var(--surface-2); border: 1px solid var(--border-soft);
+    border-radius: 8px; padding: 11px 13px; overflow-x: auto;
+    white-space: pre-wrap; word-break: break-word; color: #cdd8ec;
+  }
+  .remwrap { position: relative; margin-top: 13px; }
+  .copy {
+    position: absolute; top: 8px; right: 8px;
+    font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 9px; cursor: pointer;
+  }
+  .copy:hover { color: var(--text); }
+
+  /* CTA section */
+  .cta-section {
+    margin-top: 48px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+  }
+  .cta-section h2 {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+  }
+  .cta-section h2 span { color: var(--accent); }
+  .cta-section p { color: var(--text-dim); font-size: 16px; margin: 0 0 28px; }
+  .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    font-family: var(--sans); font-weight: 600; font-size: 15px;
+    color: #04121e; background: var(--accent);
+    border: 0; border-radius: 10px;
+    padding: 13px 28px; cursor: pointer;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 9px;
+    transition: background .15s ease;
+  }
+  .btn:hover { background: #5cc9fb; }
+  .btn.ghost {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn.ghost:hover { color: var(--text); border-color: var(--text-faint); }
+  .cta-note { margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--text-faint); }
+
+  footer {
+    border-top: 1px solid var(--border-soft);
+    padding: 22px 0 60px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+  }
+  footer a { color: var(--text-faint); text-underline-offset: 3px; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 560px) {
+    .summary { flex-direction: column; }
+    .gauge { width: 100px; height: 100px; }
+    .gauge .num b { font-size: 30px; }
+    .cta-section { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a href="/" class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z" stroke="#38bdf8" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M8.7 12.2l2.2 2.2 4.2-4.6" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="wordmark">Firewall<span>IQ</span></div>
+    </a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div class="sample-banner">
+      <span>🔍 <strong>Sample report</strong> — Cisco ASA / FTD audited against PCI DSS v4.0. This is real output from the FirewallIQ engine.</span>
+      <a href="/#audit">Run your audit →</a>
+    </div>
+
+    <!-- Score summary -->
+    <div class="summary">
+      <div class="gauge">
+        <svg width="132" height="132" viewBox="0 0 132 132">
+          <circle cx="66" cy="66" r="56" fill="none" stroke="var(--border)" stroke-width="9"/>
+          <circle cx="66" cy="66" r="56" fill="none" stroke="var(--crit)" stroke-width="9"
+            stroke-linecap="round"
+            stroke-dasharray="351.86"
+            stroke-dashoffset="344.82"/>
+        </svg>
+        <div class="num">
+          <b style="color:var(--crit)">2</b>
+          <small>score</small>
+        </div>
+      </div>
+      <div class="summary-body">
+        <h2 class="verdict">At Risk</h2>
+        <p>EDGE-FW-01 exhibits multiple critical compliance failures against PCI DSS v4.0, including unrestricted any-to-any access policies on both interfaces, Telnet enabled inbound from the internet, SNMPv2c with community strings, and critically weak IKEv1/DES/MD5/DH-Group-1 VPN crypto. Management plane controls are broadly deficient with HTTP accessible from any external host and SSH running version 1. Immediate remediation is required across nearly every audited control domain before this device can be considered PCI DSS compliant.</p>
+      </div>
+    </div>
+
+    <div class="tallies">
+      <span class="tally"><i style="background:var(--crit)"></i>5 critical</span>
+      <span class="tally"><i style="background:var(--high)"></i>4 high</span>
+      <span class="tally"><i style="background:var(--med)"></i>3 medium</span>
+    </div>
+
+    <div class="findings">
+
+      <!-- F1 CRITICAL -->
+      <article class="finding" style="border-left-color:var(--crit)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--crit);background:rgba(240,71,106,0.12)">Critical</span>
+          <span class="f-title">Permit IP Any Any on Both Inbound and Outbound ACLs</span>
+          <span class="ctrl">PCI DSS v4.0 1.3.1 / 1.3.2</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">access-list OUTSIDE_IN extended permit ip any any
+access-list INSIDE_OUT extended permit ip any any</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem0">no access-list OUTSIDE_IN extended permit ip any any
+no access-list INSIDE_OUT extended permit ip any any
+access-list OUTSIDE_IN extended deny ip any any log
+access-list INSIDE_OUT extended deny ip any any log</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem0',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F2 CRITICAL -->
+      <article class="finding" style="border-left-color:var(--crit)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--crit);background:rgba(240,71,106,0.12)">Critical</span>
+          <span class="f-title">Telnet Enabled on Outside Interface from Any Host</span>
+          <span class="ctrl">PCI DSS v4.0 2.2.7</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">telnet 0.0.0.0 0.0.0.0 outside</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem1">no telnet 0.0.0.0 0.0.0.0 outside
+no telnet 0.0.0.0 0.0.0.0 inside</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem1',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F3 CRITICAL -->
+      <article class="finding" style="border-left-color:var(--crit)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--crit);background:rgba(240,71,106,0.12)">Critical</span>
+          <span class="f-title">ASDM / HTTP Management Accessible from Any External Host</span>
+          <span class="ctrl">PCI DSS v4.0 2.2.7</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">http server enable
+http 0.0.0.0 0.0.0.0 outside</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem2">no http 0.0.0.0 0.0.0.0 outside
+http 192.168.1.0 255.255.255.0 inside</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem2',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F4 CRITICAL -->
+      <article class="finding" style="border-left-color:var(--crit)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--crit);background:rgba(240,71,106,0.12)">Critical</span>
+          <span class="f-title">IKEv1 VPN with DES Encryption, MD5 Hash, and DH Group 1</span>
+          <span class="ctrl">PCI DSS v4.0 1.2.6 / 4.2.1</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">crypto isakmp policy 10
+ encryption des
+ hash md5
+ group 1</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem3">no crypto isakmp policy 10
+crypto ikev2 policy 10
+ encryption aes-256
+ integrity sha256
+ group 14
+ prf sha256
+ lifetime seconds 86400</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem3',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F5 CRITICAL -->
+      <article class="finding" style="border-left-color:var(--crit)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--crit);background:rgba(240,71,106,0.12)">Critical</span>
+          <span class="f-title">No Logging of Denied Traffic and Insufficient Log Severity</span>
+          <span class="ctrl">PCI DSS v4.0 10.2.1 / 10.4</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">logging trap warnings</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem4">logging trap informational
+logging host inside &lt;SIEM-IP&gt;
+logging facility 23</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem4',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F6 HIGH -->
+      <article class="finding" style="border-left-color:var(--high)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--high);background:rgba(251,140,66,0.12)">High</span>
+          <span class="f-title">SSH Version 1 Enabled</span>
+          <span class="ctrl">PCI DSS v4.0 2.2.7</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">ssh version 1</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem5">ssh version 2</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem5',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F7 HIGH -->
+      <article class="finding" style="border-left-color:var(--high)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--high);background:rgba(251,140,66,0.12)">High</span>
+          <span class="f-title">SNMPv2c with Community Strings — No Authentication or Encryption</span>
+          <span class="ctrl">PCI DSS v4.0 2.2.1 / 2.2.2</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">snmp-server community [REDACTED] RO
+snmp-server community [REDACTED] RW</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem6">no snmp-server community [REDACTED] RO
+no snmp-server community [REDACTED] RW
+snmp-server group SNMPV3GROUP v3 priv
+snmp-server user SNMPV3USER SNMPV3GROUP v3 auth sha &lt;authpass&gt; priv aes 128 &lt;privpass&gt;</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem6',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F8 HIGH -->
+      <article class="finding" style="border-left-color:var(--high)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--high);background:rgba(251,140,66,0.12)">High</span>
+          <span class="f-title">No AAA Authentication Configured</span>
+          <span class="ctrl">PCI DSS v4.0 8.3 / 8.4</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">Not present in the provided configuration</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem7">aaa-server TACACS group tacacs+
+ server-private &lt;TACACS-IP&gt; key &lt;secret&gt;
+aaa authentication ssh console TACACS LOCAL
+aaa authentication http console TACACS LOCAL
+aaa accounting command TACACS</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem7',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F9 HIGH -->
+      <article class="finding" style="border-left-color:var(--high)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--high);background:rgba(251,140,66,0.12)">High</span>
+          <span class="f-title">No Anti-Spoofing Controls Configured</span>
+          <span class="ctrl">PCI DSS v4.0 1.4.3</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">Not present in the provided configuration</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem8">interface GigabitEthernet0/0
+ ip verify reverse-path interface GigabitEthernet0/0</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem8',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F10 MEDIUM -->
+      <article class="finding" style="border-left-color:var(--med)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--med);background:rgba(242,201,76,0.12)">Medium</span>
+          <span class="f-title">Service Password-Encryption Disabled</span>
+          <span class="ctrl">PCI DSS v4.0 2.2.1</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">no service password-encryption</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem9">service password-encryption</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem9',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F11 MEDIUM -->
+      <article class="finding" style="border-left-color:var(--med)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--med);background:rgba(242,201,76,0.12)">Medium</span>
+          <span class="f-title">NTP Server Configured Without Authentication</span>
+          <span class="ctrl">PCI DSS v4.0 10.4</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">ntp server 192.168.1.100</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem10">ntp authentication-key 1 md5 &lt;ntp-key&gt;
+ntp authenticate
+ntp trusted-key 1
+ntp server 192.168.1.100 key 1</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem10',this)">Copy</button>
+        </div>
+      </article>
+
+      <!-- F12 MEDIUM -->
+      <article class="finding" style="border-left-color:var(--med)">
+        <div class="finding-top">
+          <span class="sev" style="color:var(--med);background:rgba(242,201,76,0.12)">Medium</span>
+          <span class="f-title">SSH Idle Timeout Exceeds PCI DSS Session Management Requirements</span>
+          <span class="ctrl">PCI DSS v4.0 8.3</span>
+        </div>
+        <div class="kv"><div class="k">Evidence</div>
+          <pre class="code">ssh timeout 60</pre>
+        </div>
+        <div class="remwrap">
+          <div class="kv"><div class="k">Remediation</div>
+            <pre class="code" id="rem11">ssh timeout 15
+console timeout 15</pre>
+          </div>
+          <button class="copy" onclick="copyRem('rem11',this)">Copy</button>
+        </div>
+      </article>
+
+    </div><!-- /findings -->
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <h2>Ready to audit <span>your</span> firewall?</h2>
+      <p>Paste your running config and get a report like this in under 60 seconds.<br>Cisco ASA, FortiGate, Palo Alto, and 6 more platforms. PCI DSS, HIPAA, NIST 800-53, CIS.</p>
+      <div class="cta-btns">
+        <a href="/#audit" class="btn">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#04121e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Run your audit
+        </a>
+        <a href="/#pricing" class="btn ghost">See pricing</a>
+      </div>
+      <p class="cta-note">7-day money-back guarantee · No contracts · Cancel anytime</p>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+    <span>● FirewallIQ never stores your configurations.</span>
+    <a href="/">Home</a>
+    <a href="/terms">Terms</a>
+    <a href="/privacy">Privacy</a>
+    <span style="margin-left:auto;">© 2026 Treesh Tech LLC</span>
+  </div>
+</footer>
+
+<script>
+  function copyRem(id, btn) {
+    const code = document.getElementById(id);
+    navigator.clipboard.writeText(code.textContent).then(() => {
+      btn.textContent = "Copied";
+      setTimeout(() => btn.textContent = "Copy", 1400);
+    });
+  }
+</script>
+
+</body>
+</html>
