@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy — FirewallIQ</title>
+<meta name="description" content="FirewallIQ Privacy Policy. We do not store your firewall configurations. Learn what data we collect and how we use it." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='5' fill='%230a101c'/><path d='M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z' stroke='%2338bdf8' stroke-width='1.4' stroke-linejoin='round' fill='none'/><path d='M8.7 12.2l2.2 2.2 4.2-4.6' stroke='%2338bdf8' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" />
+<style>
+  :root {
+    --bg: #0a101c;
+    --surface: #111a2c;
+    --surface-2: #0e1626;
+    --border: #1f2c44;
+    --border-soft: #18233a;
+    --text: #e8eef8;
+    --text-dim: #93a1bd;
+    --text-faint: #64759a;
+    --accent: #38bdf8;
+    --pass: #2bd4a0;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --sans: "IBM Plex Sans", system-ui, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1100px 500px at 50% -10%, rgba(56,189,248,0.06), transparent 70%), var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  header {
+    border-bottom: 1px solid var(--border-soft);
+    padding: 22px 0 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .mark {
+    width: 34px; height: 34px; flex: none;
+    border: 1px solid var(--border); border-radius: 9px;
+    background: linear-gradient(180deg, #14213a, #0d1424);
+    display: grid; place-items: center;
+  }
+  .mark svg { width: 20px; height: 20px; display: block; }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; color: var(--text); }
+  .wordmark span { color: var(--accent); }
+
+  main { padding: 56px 0 100px; }
+
+  .doc-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-faint);
+    margin: 0 0 12px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    line-height: 1.1;
+  }
+  .effective {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    margin: 0 0 48px;
+  }
+
+  .notice {
+    background: rgba(43, 212, 160, 0.07);
+    border: 1px solid rgba(43, 212, 160, 0.2);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 48px;
+    line-height: 1.6;
+  }
+  .notice strong { color: var(--pass); }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 16px 0 24px;
+  }
+  .data-table th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-faint);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .data-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table td:first-child { color: var(--text); font-weight: 500; white-space: nowrap; }
+
+  h2 {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 48px 0 12px;
+    color: var(--text);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  p { margin: 0 0 16px; color: var(--text-dim); font-size: 15px; }
+  ul { margin: 0 0 16px; padding-left: 20px; color: var(--text-dim); font-size: 15px; }
+  li { margin-bottom: 8px; }
+  strong { color: var(--text); font-weight: 600; }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:hover { color: #5cc9fb; }
+
+  footer {
+    border-top: 1px solid var(--border-soft);
+    padding: 24px 0 60px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  footer a { color: var(--text-faint); }
+  footer a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a href="/" class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z" stroke="#38bdf8" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M8.7 12.2l2.2 2.2 4.2-4.6" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="wordmark">Firewall<span>IQ</span></div>
+    </a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="doc-label">Legal</p>
+    <h1>Privacy Policy</h1>
+    <p class="effective">Effective date: June 13, 2026 &nbsp;·&nbsp; Operated by Treesh Tech LLC</p>
+
+    <div class="notice">
+      <strong>The short version:</strong> Your firewall configurations are never stored. We process them in memory to generate your audit report and discard them immediately. The only personal data we collect is what is necessary to process your payment and communicate with you.
+    </div>
+
+    <h2><span class="section-num">01</span> Who We Are</h2>
+    <p>FirewallIQ is operated by Treesh Tech LLC, an Indiana limited liability company ("we," "us," or "our"). This Privacy Policy explains how we collect, use, and protect information when you use the FirewallIQ service at firewalliq.io (the "Service").</p>
+    <p>Questions about this policy may be directed to <a href="mailto:privacy@firewalliq.io">privacy@firewalliq.io</a>.</p>
+
+    <h2><span class="section-num">02</span> What We Do Not Collect</h2>
+    <p>We want to be explicit about what we do not collect, because it is central to how FirewallIQ works:</p>
+    <ul>
+      <li><strong>Firewall configurations.</strong> Configuration text you submit for auditing is processed in memory on our server-side function and is never written to a database, log file, object storage, or any other persistent medium. It is discarded the moment your audit report is returned.</li>
+      <li><strong>Audit results.</strong> We do not retain copies of the audit reports generated for you. Reports exist only in your browser session.</li>
+      <li><strong>Browsing behavior or tracking cookies.</strong> We do not use advertising trackers, behavioral analytics, or third-party tracking scripts.</li>
+    </ul>
+
+    <h2><span class="section-num">03</span> What We Do Collect</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Why we collect it</th>
+          <th>How long we keep it</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Email address</td>
+          <td>Account creation, billing receipts, service communications</td>
+          <td>Until account deletion</td>
+        </tr>
+        <tr>
+          <td>Payment information</td>
+          <td>Processing subscriptions and one-time purchases</td>
+          <td>Handled and stored by Stripe — we never see your card number</td>
+        </tr>
+        <tr>
+          <td>Billing name and address</td>
+          <td>Required for payment processing and tax compliance</td>
+          <td>Until account deletion or as required by law</td>
+        </tr>
+        <tr>
+          <td>Usage metadata</td>
+          <td>Audit count for plan enforcement (we count audits, not content)</td>
+          <td>Duration of account</td>
+        </tr>
+        <tr>
+          <td>Server function logs</td>
+          <td>Debugging and error tracking (logs contain vendor type and config character count, never config content)</td>
+          <td>24 hours (Netlify default retention)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2><span class="section-num">04</span> How Your Configuration Is Processed</h2>
+    <p>When you submit a configuration for audit, the following occurs:</p>
+    <ul>
+      <li>Your browser sends the configuration text to our Netlify serverless function over an encrypted HTTPS connection.</li>
+      <li>The function automatically redacts common secret patterns including passwords, pre-shared keys, and SNMP community strings before any further processing.</li>
+      <li>The redacted configuration is sent to the Anthropic API (the AI provider powering our audit engine) over an encrypted connection, along with our audit instructions. Anthropic processes this request and returns the analysis.</li>
+      <li>The audit report is streamed back to your browser.</li>
+      <li>The configuration text is discarded. Neither we nor our function retains it.</li>
+    </ul>
+    <p>For information on how Anthropic handles API data, please see <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">Anthropic's Privacy Policy</a>. Anthropic does not use API inputs to train its models by default.</p>
+
+    <h2><span class="section-num">05</span> Payment Processing</h2>
+    <p>All payment processing is handled by <a href="https://stripe.com/privacy" target="_blank" rel="noopener">Stripe, Inc.</a> We do not store, see, or have access to your full credit card number, CVV, or bank account details. Stripe provides us with a tokenized representation of your payment method for recurring billing purposes.</p>
+    <p>By making a purchase, you agree to <a href="https://stripe.com/legal" target="_blank" rel="noopener">Stripe's terms of service and privacy policy</a>.</p>
+
+    <h2><span class="section-num">06</span> Third-Party Services</h2>
+    <p>FirewallIQ uses the following third-party services:</p>
+    <ul>
+      <li><strong>Netlify</strong> — hosting, serverless functions, and CDN. <a href="https://www.netlify.com/privacy/" target="_blank" rel="noopener">Netlify Privacy Policy</a></li>
+      <li><strong>Anthropic</strong> — AI audit engine via API. <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">Anthropic Privacy Policy</a></li>
+      <li><strong>Stripe</strong> — payment processing. <a href="https://stripe.com/privacy" target="_blank" rel="noopener">Stripe Privacy Policy</a></li>
+      <li><strong>Google Fonts</strong> — typography (IBM Plex Sans, IBM Plex Mono, Space Grotesk). Google may log font requests. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a></li>
+    </ul>
+    <p>We do not sell, rent, or share your personal data with any third parties beyond those listed above and only to the extent necessary to provide the Service.</p>
+
+    <h2><span class="section-num">07</span> Data Security</h2>
+    <p>We implement reasonable technical measures to protect your personal information, including TLS encryption for all data in transit. However, no method of transmission over the internet or electronic storage is 100% secure. We cannot guarantee absolute security but are committed to protecting your data using industry-standard practices.</p>
+
+    <h2><span class="section-num">08</span> Your Rights</h2>
+    <p>Depending on your location, you may have the following rights regarding your personal data:</p>
+    <ul>
+      <li><strong>Access.</strong> Request a copy of the personal data we hold about you.</li>
+      <li><strong>Correction.</strong> Request correction of inaccurate personal data.</li>
+      <li><strong>Deletion.</strong> Request deletion of your account and associated personal data.</li>
+      <li><strong>Portability.</strong> Request your data in a portable format.</li>
+      <li><strong>Objection.</strong> Object to certain processing of your personal data.</li>
+    </ul>
+    <p>To exercise any of these rights, contact us at <a href="mailto:privacy@firewalliq.io">privacy@firewalliq.io</a>. We will respond within 30 days.</p>
+
+    <h2><span class="section-num">09</span> California Privacy Rights (CCPA)</h2>
+    <p>If you are a California resident, you have the right to know what personal information we collect, request deletion of your personal information, and opt out of the sale of your personal information. We do not sell personal information. To exercise your rights, contact us at <a href="mailto:privacy@firewalliq.io">privacy@firewalliq.io</a>.</p>
+
+    <h2><span class="section-num">10</span> Children's Privacy</h2>
+    <p>The Service is not directed to individuals under the age of 18. We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us and we will delete it promptly.</p>
+
+    <h2><span class="section-num">11</span> Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. When we do, we will update the effective date at the top of this page. For material changes, we will notify active subscribers by email. Your continued use of the Service after changes are posted constitutes your acceptance of the revised policy.</p>
+
+    <h2><span class="section-num">12</span> Contact</h2>
+    <p>For privacy-related questions or requests:</p>
+    <p><strong>Treesh Tech LLC</strong><br>Fort Wayne, Indiana<br><a href="mailto:privacy@firewalliq.io">privacy@firewalliq.io</a></p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+    <a href="/">← Back to FirewallIQ</a>
+    <a href="/terms">Terms of Service</a>
+    <span style="margin-left:auto;">© 2026 Treesh Tech LLC</span>
+  </div>
+</footer>
+
+</body>
+</html>

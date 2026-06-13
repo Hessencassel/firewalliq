@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Terms of Service — FirewallIQ</title>
+<meta name="description" content="FirewallIQ Terms of Service. Read our terms before using the firewall compliance audit tool." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='5' fill='%230a101c'/><path d='M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z' stroke='%2338bdf8' stroke-width='1.4' stroke-linejoin='round' fill='none'/><path d='M8.7 12.2l2.2 2.2 4.2-4.6' stroke='%2338bdf8' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" />
+<style>
+  :root {
+    --bg: #0a101c;
+    --surface: #111a2c;
+    --surface-2: #0e1626;
+    --border: #1f2c44;
+    --border-soft: #18233a;
+    --text: #e8eef8;
+    --text-dim: #93a1bd;
+    --text-faint: #64759a;
+    --accent: #38bdf8;
+    --pass: #2bd4a0;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --sans: "IBM Plex Sans", system-ui, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1100px 500px at 50% -10%, rgba(56,189,248,0.06), transparent 70%), var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  header {
+    border-bottom: 1px solid var(--border-soft);
+    padding: 22px 0 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .mark {
+    width: 34px; height: 34px; flex: none;
+    border: 1px solid var(--border); border-radius: 9px;
+    background: linear-gradient(180deg, #14213a, #0d1424);
+    display: grid; place-items: center;
+  }
+  .mark svg { width: 20px; height: 20px; display: block; }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; color: var(--text); }
+  .wordmark span { color: var(--accent); }
+
+  main { padding: 56px 0 100px; }
+
+  .doc-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-faint);
+    margin: 0 0 12px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    line-height: 1.1;
+  }
+  .effective {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    margin: 0 0 48px;
+  }
+
+  .notice {
+    background: rgba(43, 212, 160, 0.07);
+    border: 1px solid rgba(43, 212, 160, 0.2);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 48px;
+    line-height: 1.6;
+  }
+  .notice strong { color: var(--pass); }
+
+  h2 {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 48px 0 12px;
+    color: var(--text);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  p { margin: 0 0 16px; color: var(--text-dim); font-size: 15px; }
+  ul { margin: 0 0 16px; padding-left: 20px; color: var(--text-dim); font-size: 15px; }
+  li { margin-bottom: 8px; }
+  strong { color: var(--text); font-weight: 600; }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:hover { color: #5cc9fb; }
+
+  footer {
+    border-top: 1px solid var(--border-soft);
+    padding: 24px 0 60px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  footer a { color: var(--text-faint); }
+  footer a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a href="/" class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z" stroke="#38bdf8" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M8.7 12.2l2.2 2.2 4.2-4.6" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="wordmark">Firewall<span>IQ</span></div>
+    </a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="doc-label">Legal</p>
+    <h1>Terms of Service</h1>
+    <p class="effective">Effective date: June 13, 2026 &nbsp;·&nbsp; Operated by Treesh Tech LLC</p>
+
+    <div class="notice">
+      <strong>Plain-English summary:</strong> FirewallIQ is an automated analysis tool, not a licensed security auditor. Use the output as a starting point for remediation, not as a substitute for a formal compliance assessment. Your configs are never stored. We are not liable for damages arising from use of this service.
+    </div>
+
+    <h2><span class="section-num">01</span> Acceptance of Terms</h2>
+    <p>By accessing or using FirewallIQ at firewalliq.io (the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Service. These Terms constitute a legally binding agreement between you and Treesh Tech LLC ("we," "us," or "our"), an Indiana limited liability company.</p>
+    <p>We reserve the right to update these Terms at any time. Continued use of the Service after changes are posted constitutes your acceptance of the revised Terms.</p>
+
+    <h2><span class="section-num">02</span> Description of Service</h2>
+    <p>FirewallIQ provides an AI-powered, automated analysis of firewall device configurations against common compliance frameworks including PCI DSS v4.0, CIS Benchmarks, HIPAA Security Rule, and NIST SP 800-53 Rev 5. The Service produces a scored report with findings and suggested remediation steps based solely on the configuration text you provide.</p>
+    <p>The Service is intended to assist qualified network and security professionals in identifying potential configuration gaps. It is not a substitute for professional judgment, manual review, or a formal compliance audit conducted by a licensed assessor.</p>
+
+    <h2><span class="section-num">03</span> No Professional Advice</h2>
+    <p><strong>The output of FirewallIQ does not constitute legal, regulatory, or professional security advice.</strong> Specifically:</p>
+    <ul>
+      <li>A FirewallIQ report does not certify compliance with PCI DSS, HIPAA, NIST, CIS, or any other standard or regulation.</li>
+      <li>FirewallIQ findings are generated by an AI model and may be incomplete, inaccurate, or inapplicable to your specific environment.</li>
+      <li>Following remediation suggestions provided by the Service does not guarantee that your device or environment will meet any regulatory requirement.</li>
+      <li>FirewallIQ is not a Qualified Security Assessor (QSA), a HIPAA covered entity assessor, or an accredited certification body of any kind.</li>
+    </ul>
+    <p>You are solely responsible for evaluating the appropriateness of any finding or remediation step before applying it to a production system.</p>
+
+    <h2><span class="section-num">04</span> Acceptable Use</h2>
+    <p>You may only use FirewallIQ to audit firewall configurations that you own or have explicit written authorization to audit. You agree not to:</p>
+    <ul>
+      <li>Submit configurations belonging to systems you do not own or are not authorized to assess.</li>
+      <li>Use the Service to facilitate unauthorized access to computer systems or networks.</li>
+      <li>Attempt to reverse-engineer, scrape, or extract the underlying prompts, models, or logic of the Service.</li>
+      <li>Resell or sublicense access to the Service without our written consent.</li>
+      <li>Use the Service for any unlawful purpose or in violation of any applicable law or regulation.</li>
+      <li>Submit configurations containing live credentials, production keys, or other sensitive material beyond what is necessary for the audit. The Service automatically redacts common secret patterns, but you are responsible for reviewing what you submit.</li>
+    </ul>
+    <p>We reserve the right to suspend or terminate access for any user we determine, in our sole discretion, is violating these terms.</p>
+
+    <h2><span class="section-num">05</span> Configuration Data and Privacy</h2>
+    <p><strong>FirewallIQ does not store your configuration data.</strong> When you submit a configuration for audit, it is transmitted to our server-side audit function, processed in memory against the selected compliance framework, and the resulting report is returned to your browser. The configuration text is discarded immediately upon completion of the audit and is never written to a database, log file, or any persistent storage.</p>
+    <p>Common secret patterns including passwords, pre-shared keys, and SNMP community strings are automatically redacted from the configuration before it is processed by the AI model. Despite this, you should exercise caution and avoid submitting configurations containing active production credentials.</p>
+    <p>For information about data we do collect (such as billing information processed by Stripe), please see our <a href="/privacy">Privacy Policy</a>.</p>
+
+    <h2><span class="section-num">06</span> Payment Terms</h2>
+    <p>Certain features of the Service require payment. All payments are processed by Stripe, Inc. By providing payment information, you agree to Stripe's terms of service. We do not store your credit card number or payment credentials.</p>
+    <p>Subscription fees are billed in advance on a recurring basis. You may cancel your subscription at any time through your account settings. Cancellation takes effect at the end of the current billing period. We do not provide refunds for partial billing periods except where required by applicable law.</p>
+    <p>We reserve the right to change pricing at any time with reasonable notice to existing subscribers.</p>
+
+    <h2><span class="section-num">07</span> Disclaimer of Warranties</h2>
+    <p><strong>THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.</strong> To the fullest extent permitted by applicable law, Treesh Tech LLC expressly disclaims all warranties, including but not limited to:</p>
+    <ul>
+      <li>Implied warranties of merchantability, fitness for a particular purpose, and non-infringement.</li>
+      <li>Any warranty that the Service will be uninterrupted, error-free, or free of viruses or other harmful components.</li>
+      <li>Any warranty that audit results will be accurate, complete, or suitable for any particular use case.</li>
+      <li>Any warranty that following the remediation guidance provided will result in compliance with any standard, regulation, or security requirement.</li>
+    </ul>
+
+    <h2><span class="section-num">08</span> Limitation of Liability</h2>
+    <p><strong>TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, TREESH TECH LLC SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES</strong> arising out of or related to your use of or inability to use the Service, including but not limited to damages for lost profits, data loss, security breaches, system downtime, or cost of substitute services.</p>
+    <p>In no event shall our total aggregate liability to you for any claims arising out of or related to these Terms or the Service exceed the greater of (a) the total amount you paid us in the twelve months preceding the claim, or (b) one hundred dollars ($100.00).</p>
+    <p>Some jurisdictions do not allow the exclusion or limitation of certain damages. In such jurisdictions, our liability is limited to the maximum extent permitted by law.</p>
+
+    <h2><span class="section-num">09</span> Indemnification</h2>
+    <p>You agree to indemnify, defend, and hold harmless Treesh Tech LLC and its officers, members, employees, and agents from and against any claims, liabilities, damages, losses, and expenses, including reasonable legal fees, arising out of or in any way connected with your access to or use of the Service, your violation of these Terms, or your infringement of any third-party right.</p>
+
+    <h2><span class="section-num">10</span> Intellectual Property</h2>
+    <p>The FirewallIQ name, logo, interface design, prompt engineering, and underlying audit framework are the intellectual property of Treesh Tech LLC. Nothing in these Terms grants you a license to use our trademarks, trade names, or branding.</p>
+    <p>You retain all rights to the configuration data you submit. By submitting a configuration, you grant us a limited, transient license to process it solely for the purpose of generating your audit report. This license terminates upon completion of the audit.</p>
+
+    <h2><span class="section-num">11</span> Governing Law and Disputes</h2>
+    <p>These Terms shall be governed by and construed in accordance with the laws of the State of Indiana, without regard to its conflict of law provisions. Any dispute arising under or related to these Terms shall be resolved exclusively in the state or federal courts located in Allen County, Indiana, and you consent to personal jurisdiction in those courts.</p>
+
+    <h2><span class="section-num">12</span> Miscellaneous</h2>
+    <p>If any provision of these Terms is found to be unenforceable, the remaining provisions will remain in full force and effect. Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights. These Terms constitute the entire agreement between you and Treesh Tech LLC regarding the Service and supersede any prior agreements.</p>
+
+    <h2><span class="section-num">13</span> Contact</h2>
+    <p>Questions about these Terms may be directed to:</p>
+    <p><strong>Treesh Tech LLC</strong><br>Fort Wayne, Indiana<br><a href="mailto:legal@firewalliq.io">legal@firewalliq.io</a></p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+    <a href="/">← Back to FirewallIQ</a>
+    <a href="/privacy">Privacy Policy</a>
+    <span style="margin-left:auto;">© 2026 Treesh Tech LLC</span>
+  </div>
+</footer>
+
+</body>
+</html>
