@@ -62,10 +62,10 @@ export default async (req) => {
         "cancel_url": `${SITE_URL}/#pricing`,
         "allow_promotion_codes": "true",
         "billing_address_collection": "auto",
-        "customer_email": body.email || "",
         "metadata[plan]": plan,
         "metadata[plan_label]": planLabel,
         "subscription_data[metadata][plan]": plan,
+        ...(body.email ? { "customer_email": body.email } : {}),
       }),
     });
 

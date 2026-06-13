@@ -1725,9 +1725,8 @@ access-list OUTSIDE_IN extended permit ip any any
   })();
 
 async function startCheckout(plan) {
-  const btn = event.currentTarget;
-  btn.disabled = true;
-  btn.textContent = "Redirecting...";
+  const btn = document.querySelector(`button[onclick="startCheckout('${plan}')"]`);
+  if (btn) { btn.disabled = true; btn.textContent = "Redirecting..."; }
   try {
     const res = await fetch("/.netlify/functions/checkout", {
       method: "POST",
@@ -1738,14 +1737,12 @@ async function startCheckout(plan) {
     if (data.url) {
       window.location.href = data.url;
     } else {
-      alert("Something went wrong. Please try again.");
-      btn.disabled = false;
-      btn.textContent = "Get started";
+      alert(data.error || "Something went wrong. Please try again.");
+      if (btn) { btn.disabled = false; btn.textContent = "Get started"; }
     }
   } catch (e) {
     alert("Something went wrong. Please try again.");
-    btn.disabled = false;
-    btn.textContent = "Get started";
+    if (btn) { btn.disabled = false; btn.textContent = "Get started"; }
   }
 }
 </script>
