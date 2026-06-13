@@ -5,7 +5,7 @@
 
 const MODEL = process.env.FIREWALLIQ_MODEL || "claude-sonnet-4-6";
 const ANTHROPIC_VERSION = "2023-06-01";
-const MAX_TOKENS = 4000;
+const MAX_TOKENS = 8000;
 
 const VENDORS = {
   cisco_asa:   "Cisco ASA / FTD (Firepower Threat Defense)",
@@ -192,6 +192,8 @@ Labels: 0-49 "At risk", 50-69 "Needs work", 70-84 "Fair", 85-94 "Strong", 95-100
 OUTPUT
 Respond with ONLY a single valid JSON object. No markdown, no code fences, no preamble, no text before or after the JSON. Start your response with { and end with }.
 
+Limit findings to the 12 most significant issues. Keep each remediation to 2-3 CLI lines or sentences maximum. Keep evidence to the single most relevant config line. Keep the summary to 2-3 sentences.
+
 {
   "score": <integer 0-100>,
   "score_label": "<label>",
@@ -265,7 +267,9 @@ export default async (req) => {
         max_tokens: MAX_TOKENS,
         system: buildSystem(vendor, framework),
         stream: true,
-        messages: [{ role: "user", content: buildUser(vendor, framework, scrubbed) }],
+        messages: [
+          { role: "user", content: buildUser(vendor, framework, scrubbed) },
+        ],
       }),
     });
   } catch (e) {
