@@ -613,9 +613,14 @@ access-list OUTSIDE_IN extended permit ip any any
         if (done) break;
         raw += decoder.decode(value, { stream: true });
       }
+      raw += decoder.decode(); // flush any remaining bytes
 
       const report = parseReport(raw);
-      if (!report) throw new Error("The audit engine returned a response that couldn't be read. Try running it again.");
+      if (!report) {
+        console.error("FirewallIQ parse failed. Raw response (first 500):", raw.slice(0, 500));
+        console.error("FirewallIQ parse failed. Raw response (last 500):", raw.slice(-500));
+        throw new Error("The audit engine returned a response that couldn't be read. Try running it again.");
+      }
       render(report);
       stopScan();
       setState("report");
