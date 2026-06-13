@@ -630,7 +630,10 @@ access-list OUTSIDE_IN extended permit ip any any
   });
 
   function parseReport(text) {
-    let t = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+    // The assistant prefill sends "{" before streaming starts, so the stream
+    // begins mid-JSON. Prepend the opening brace so the result is valid JSON.
+    let t = ("{" + text).trim();
+    t = t.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
     try { return JSON.parse(t); } catch {}
     const s = t.indexOf("{"), e = t.lastIndexOf("}");
     if (s !== -1 && e !== -1) { try { return JSON.parse(t.slice(s, e + 1)); } catch {} }

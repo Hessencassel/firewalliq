@@ -265,7 +265,10 @@ export default async (req) => {
         max_tokens: MAX_TOKENS,
         system: buildSystem(vendor, framework),
         stream: true,
-        messages: [{ role: "user", content: buildUser(vendor, framework, scrubbed) }],
+        messages: [
+          { role: "user",      content: buildUser(vendor, framework, scrubbed) },
+          { role: "assistant", content: "{" },
+        ],
       }),
     });
   } catch (e) {
