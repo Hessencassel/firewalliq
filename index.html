@@ -984,6 +984,7 @@
   /* Shown only during print */
   .pdf-brand, .pdf-meta { display: none; }
 </style>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
 
@@ -999,6 +1000,11 @@
             </svg>
           </div>
           <div class="wordmark">Firewall<span>IQ</span></div>
+          <div class="identity-bar" id="identity-bar" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+            <span id="user-email" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);"></span>
+            <button id="login-btn" onclick="netlifyIdentity.open()" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
+            <button id="logout-btn" onclick="netlifyIdentity.logout()" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
+          </div>
         </a>
         <div class="nav-text-links">
           <a href="#features">Features</a>
@@ -1191,19 +1197,6 @@ access-list OUTSIDE_IN extended permit ip any any
           <button class="filebtn" id="filebtn" type="button">or upload a file</button>
           <input type="file" id="file" accept=".txt,.conf,.cfg,.xml,.log,.cli" hidden />
           <span class="grow"></span>
-          <div class="token-gate" id="token-gate">
-            <input
-              type="text"
-              id="audit-token"
-              placeholder="Enter your audit token"
-              spellcheck="false"
-              autocomplete="off"
-              style="width:100%;background:var(--surface-2);border:1px solid
-              var(--border);border-radius:9px;padding:10px 14px;
-              font-family:var(--mono);font-size:13px;color:var(--text);
-              outline:none;margin-bottom:10px;"
-            />
-          </div>
           <button class="btn" id="run" type="button" disabled>
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#04121e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Run audit
@@ -1444,11 +1437,15 @@ access-list OUTSIDE_IN extended permit ip any any
 
   // Run the audit (streams from the function, parses JSON on completion)
   runBtn.addEventListener("click", async () => {
-    const token = document.getElementById('audit-token').value.trim();
-    if (!token) {
-      showError('Enter your audit token to run an audit.');
+    const user = netlifyIdentity.currentUser();
+    if (!user) {
+      showError("Please log in to run an audit.");
+      runBtn.disabled = false;
+      setState(null);
+      stopScan();
       return;
     }
+    const token = await user.jwt();
     clearError();
     setState("scan");
     startScan();
@@ -1458,12 +1455,11 @@ access-list OUTSIDE_IN extended permit ip any any
     try {
       const res = await fetch("/.netlify/functions/audit", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", "authorization": `Bearer ${token}` },
         body: JSON.stringify({
           config: config.value,
           vendor: vendorSel.value,
           framework: $("framework").value,
-          token,
         }),
       });
 
@@ -1627,11 +1623,6 @@ access-list OUTSIDE_IN extended permit ip any any
 
   refreshMeta();
 
-  const savedToken = sessionStorage.getItem('firewalliq_token');
-  if (savedToken) {
-    document.getElementById('audit-token').value = savedToken;
-  }
-
   // ── Scroll reveal (IntersectionObserver) ──
   (function () {
     var els = document.querySelectorAll('.reveal');
@@ -1747,6 +1738,26 @@ access-list OUTSIDE_IN extended permit ip any any
     run();
     setInterval(run, CYCLE);
   })();
+
+// Netlify Identity event handlers
+netlifyIdentity.on("init", user => updateAuthUI(user));
+netlifyIdentity.on("login", user => { updateAuthUI(user); netlifyIdentity.close(); });
+netlifyIdentity.on("logout", () => updateAuthUI(null));
+
+function updateAuthUI(user) {
+  const loginBtn = document.getElementById("login-btn");
+  const logoutBtn = document.getElementById("logout-btn");
+  const userEmail = document.getElementById("user-email");
+  if (user) {
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "block";
+    userEmail.textContent = user.email;
+  } else {
+    loginBtn.style.display = "block";
+    logoutBtn.style.display = "none";
+    userEmail.textContent = "";
+  }
+}
 
 async function startCheckout(plan) {
   const btn = document.querySelector(`button[onclick="startCheckout('${plan}')"]`);

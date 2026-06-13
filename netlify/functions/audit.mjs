@@ -7,8 +7,6 @@ const MODEL = process.env.FIREWALLIQ_MODEL || "claude-sonnet-4-6";
 const ANTHROPIC_VERSION = "2023-06-01";
 const MAX_TOKENS = 8000;
 
-const SITE_URL = "https://firewalliq.io";
-
 const VENDORS = {
   cisco_asa:   "Cisco ASA / FTD (Firepower Threat Defense)",
   fortigate:   "Fortinet FortiGate (FortiOS)",
@@ -261,17 +259,54 @@ function json(obj, status = 200) {
   });
 }
 
+function json(obj, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { "content-type": "application/json", "cache-control": "no-store" },
+  });
+}
+
+const SITE_URL = "https://firewalliq.io";
+
+async function validateIdentityToken(authHeader) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return { valid: false, error: "Please log in to run an audit." };
+  }
+  const token = authHeader.slice(7);
+  try {
+    const res = await fetch(`${SITE_URL}/.netlify/identity/user`, {
+      headers: { "Authorization": `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      return { valid: false, error: "Session expired. Please log in again." };
+    }
+    const user = await res.json();
+    const plan = user.user_metadata?.plan || user.app_metadata?.plan;
+    if (!plan) {
+      return { valid: false, error: "No active plan found. Please purchase a subscription." };
+    }
+    return { valid: true, email: user.email, plan };
+  } catch (e) {
+    return { valid: false, error: "Could not validate session. Try again." };
+  }
+}
+
 export default async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     console.error("FIREWALLIQ: ANTHROPIC_API_KEY is not set.");
-    return json(
-      { error: "The audit engine is not configured. Set ANTHROPIC_API_KEY in Netlify environment variables." },
-      500
-    );
+    return json({ error: "The audit engine is not configured." }, 500);
   }
+
+  // Validate Netlify Identity JWT
+  const authHeader = req.headers.get("authorization");
+  const auth = await validateIdentityToken(authHeader);
+  if (!auth.valid) {
+    return json({ error: auth.error }, 401);
+  }
+  console.log(`FIREWALLIQ: authenticated — email=${auth.email} plan=${auth.plan}`);
 
   let body;
   try {
@@ -280,30 +315,10 @@ export default async (req) => {
     return json({ error: "Invalid request body." }, 400);
   }
 
-  const { config, vendor, framework, token } = body || {};
+  const { config, vendor, framework } = body || {};
   if (!config || !String(config).trim()) return json({ error: "Paste a configuration to audit." }, 400);
   if (!VENDORS[vendor])    return json({ error: `Unsupported vendor: ${vendor}` }, 400);
   if (!FRAMEWORKS[framework]) return json({ error: `Unsupported framework: ${framework}` }, 400);
-
-  if (!token || !token.trim()) {
-    return json({ error: "An audit token is required. Purchase a plan at firewalliq.io to get your token." }, 401);
-  }
-
-  try {
-    const validateRes = await fetch(`${SITE_URL}/.netlify/functions/validate-token`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ token: token.trim() }),
-    });
-    const validateData = await validateRes.json();
-    if (!validateData.valid) {
-      return json({ error: validateData.error || "Invalid or expired token. Check your email for your audit token." }, 401);
-    }
-    console.log(`FIREWALLIQ: token valid — plan=${validateData.plan}`);
-  } catch (e) {
-    console.error("FIREWALLIQ: token validation error:", e.message);
-    return json({ error: "Could not validate token. Try again." }, 502);
-  }
 
   const scrubbed = scrubSecrets(config);
   console.log(`FIREWALLIQ: audit started — vendor=${vendor} framework=${framework} config_chars=${scrubbed.length}`);
@@ -335,7 +350,7 @@ export default async (req) => {
   if (!upstream.ok || !upstream.body) {
     const detail = await upstream.text().catch(() => "");
     console.error(`FIREWALLIQ: Anthropic API error ${upstream.status}:`, detail.slice(0, 400));
-    return json({ error: "The audit engine returned an error. Check your API key and credits.", detail: detail.slice(0, 600) }, 502);
+    return json({ error: "The audit engine returned an error.", detail: detail.slice(0, 600) }, 502);
   }
 
   console.log("FIREWALLIQ: Anthropic stream started, forwarding to client...");
@@ -367,7 +382,7 @@ export default async (req) => {
                 controller.enqueue(encoder.encode(text));
               }
             } catch {
-              // partial or non-JSON keep-alive line — ignore
+              // ignore
             }
           }
         }
