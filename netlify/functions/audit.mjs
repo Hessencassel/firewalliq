@@ -22,6 +22,8 @@ const VENDORS = {
 const FRAMEWORKS = {
   pci_dss_4: "PCI DSS v4.0",
   cis:       "CIS Benchmarks (vendor-specific)",
+  hipaa:     "HIPAA Security Rule (45 CFR Part 164)",
+  nist_800_53: "NIST SP 800-53 Rev 5",
 };
 
 // --- Vendor knowledge blocks ---
@@ -151,6 +153,37 @@ Core CIS control areas for firewalls:
 - Data plane: deny-by-default, anti-spoofing, no any-any rules, segment trusted/untrusted.
 - SNMP: SNMPv3 with auth/priv; no public/private or v2c communities.
 - Secure VPN: strong DH groups, AES (not DES/3DES), SHA (not MD5), PFS enabled.`,
+
+  hipaa: `FRAMEWORK: HIPAA Security Rule (45 CFR Part 164) — Technical Safeguards. Map each finding to the relevant HIPAA standard or implementation specification. Assess only what is determinable from the firewall configuration; note where controls require organizational policy evidence beyond what a config can show.
+Key standards and implementation specifications relevant to firewall configuration:
+- §164.312(a)(1) Access Control: Unique user IDs, emergency access, automatic logoff, encryption. On firewall: no shared admin accounts, session timeouts configured, management access restricted.
+- §164.312(a)(2)(iv) Encryption and Decryption: ePHI transmitted across open networks must be encrypted. On firewall: no plaintext management (Telnet/HTTP), VPN using strong crypto (AES/SHA/IKEv2), TLS inspection where applicable.
+- §164.312(b) Audit Controls: Hardware, software, and procedural mechanisms to record and examine activity. On firewall: logging enabled, all permitted and denied traffic logged, syslog forwarding to SIEM, NTP configured for log integrity.
+- §164.312(c)(1) Integrity: ePHI must not be improperly altered or destroyed. On firewall: IPS/deep inspection enabled on policies traversing ePHI paths, anti-spoofing controls present.
+- §164.312(d) Person or Entity Authentication: Verify identity before granting access. On firewall: MFA for admin access, no default or shared credentials, AAA via RADIUS/TACACS+.
+- §164.312(e)(1) Transmission Security: Guard against unauthorized access to ePHI in transit. On firewall: any-any rules absent, least-privilege access policy, encrypted management only, strong VPN crypto.
+- §164.308(a)(5) Security Awareness: Log review procedures in place (note if logging is absent or insufficient as a gap).
+Where a safeguard cannot be confirmed from the configuration, explicitly note it as "Cannot be determined from configuration alone — organizational policy review required."`,
+
+  nist_800_53: `FRAMEWORK: NIST SP 800-53 Rev 5. Map each finding to the relevant control identifier. Focus on control families directly assessable from a firewall running configuration. Cite the control ID precisely (e.g., "AC-17", "AU-2", "SC-8").
+Key control families and controls relevant to firewall configuration:
+- AC-2 Account Management: No shared accounts, accounts reviewed, inactive accounts disabled. Firewall: no default/shared admin accounts, backup accounts justified.
+- AC-3 Access Enforcement: Enforce least privilege. Firewall: no permit-any-any, rules scoped to minimum required access.
+- AC-17 Remote Access: Secure remote access enforced. Firewall: SSH v2 only, no Telnet, management restricted to authorized hosts, MFA for remote admin.
+- AC-18 / AC-19 Wireless / Mobile: Out of scope for most firewalls; note if applicable.
+- AU-2 Event Logging: Auditable events defined and logged. Firewall: logging enabled, denied traffic logged, all admin actions logged.
+- AU-3 Content of Audit Records: Log records contain sufficient detail. Firewall: syslog to centralized server, timestamps via NTP, severity appropriate.
+- AU-8 Time Stamps: Synchronized clocks. Firewall: NTP configured and authenticated.
+- AU-9 Protection of Audit Information: Logs protected from modification. Firewall: remote syslog configured, logs not stored locally only.
+- IA-2 Identification and Authentication: MFA for privileged accounts. Firewall: MFA/two-factor for admin, centralized AAA.
+- IA-5 Authenticator Management: Password complexity, no default credentials. Firewall: password policy enabled, default credentials changed.
+- SC-5 Denial of Service Protection: DoS protection enabled. Firewall: DoS/rate-limiting policies present.
+- SC-7 Boundary Protection: Firewall at network boundary, deny-by-default, DMZ segmentation. Firewall: explicit deny rule, no any-any, zones segmented.
+- SC-8 Transmission Confidentiality and Integrity: Encrypt data in transit. Firewall: no plaintext management, VPN using AES/SHA/IKEv2, no DES/3DES/MD5.
+- SC-28 Protection of Information at Rest: Encrypt sensitive data. Firewall: service password-encryption enabled, no plaintext keys in config.
+- SI-3 Malware Protection: IPS/AV inspection on traffic flows. Firewall: security profiles applied to policies.
+- SI-10 Information Input Validation: Input validation. Firewall: anti-spoofing (uRPF or equivalent) configured.
+Where a control cannot be assessed from the configuration, state "Not assessable from configuration — policy or procedural review required."`,
 };
 
 function scrubSecrets(text) {
