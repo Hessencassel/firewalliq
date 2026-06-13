@@ -5,150 +5,156 @@
 
 const MODEL = process.env.FIREWALLIQ_MODEL || "claude-sonnet-4-6";
 const ANTHROPIC_VERSION = "2023-06-01";
-const MAX_TOKENS = 8000;
+const MAX_TOKENS = 4000;
 
 const VENDORS = {
-  cisco_asa: "Cisco ASA / FTD (Firepower Threat Defense)",
-  fortigate: "Fortinet FortiGate (FortiOS)",
-  palo_alto: "Palo Alto Networks (PAN-OS)",
-  checkpoint: "Check Point (Gaia / R8x)",
-  sonicwall: "SonicWall (SonicOS)",
-  sophos: "Sophos Firewall (SFOS, XGS/XG)",
-  watchguard: "WatchGuard Firebox (Fireware)",
+  cisco_asa:   "Cisco ASA / FTD (Firepower Threat Defense)",
+  fortigate:   "Fortinet FortiGate (FortiOS)",
+  palo_alto:   "Palo Alto Networks (PAN-OS)",
+  checkpoint:  "Check Point Gaia (R80/R81)",
+  sonicwall:   "SonicWall (SonicOS)",
+  sophos:      "Sophos Firewall (SFOS)",
+  watchguard:  "WatchGuard Firebox (Fireware)",
   juniper_srx: "Juniper SRX (Junos)",
-  pfsense: "pfSense / OPNsense",
+  pfsense:     "pfSense / OPNsense",
 };
 
 const FRAMEWORKS = {
   pci_dss_4: "PCI DSS v4.0",
-  cis: "CIS Benchmarks (vendor-specific)",
+  cis:       "CIS Benchmarks (vendor-specific)",
 };
 
-// --- Vendor knowledge blocks (v1 — validate and refine against trusted configs) ---
+// --- Vendor knowledge blocks ---
 const VENDOR_BLOCKS = {
   cisco_asa: `PLATFORM: Cisco ASA / FTD (Firepower Threat Defense).
-A "running-config" from an ASA is flat CLI. FTD running-config is ASA-like but FTD is typically managed by FMC, so some policy lives off-box; assess only what is present and note what cannot be evaluated.
+A "running-config" from an ASA is flat CLI. FTD is ASA-like but managed by FMC; assess only what is present.
 Audit these areas and cite the exact line as evidence:
-- Access policy: any-any permits, overly broad source/destination/service, "permit ip any any", unused or shadowed access-list entries, missing explicit deny with logging.
+- Access policy: any-any permits, overly broad rules, "permit ip any any", missing explicit deny with logging.
 - NAT: overly broad or identity NAT exposing internal hosts.
-- Management plane: telnet enabled (should be SSH only), "http server enable" and ASDM access scoped to specific hosts, SSH version 2 only, login/exec timeouts, "service password-encryption", banner present.
-- AAA & accounts: local-only auth vs TACACS+/RADIUS, default or weak usernames, "enable password" strength, password policy.
+- Management plane: telnet enabled (must be SSH only), "http server enable" scope, SSH version 2 only, login/exec timeouts, "service password-encryption", banner present.
+- AAA & accounts: local-only auth vs TACACS+/RADIUS, default or weak usernames, "enable password" strength.
 - Logging: logging enabled, logging host/buffered, trap severity, logging of denied traffic.
-- SNMP: v2c community strings (weak) vs SNMPv3 with auth/priv.
+- SNMP: v2c community strings vs SNMPv3 with auth/priv.
 - NTP: configured and authenticated.
 - VPN/crypto: IKEv1 vs IKEv2, weak DH groups (1/2/5), weak transforms (DES/3DES/MD5), missing PFS.
-Remediation must use real ASA/FTD CLI (e.g., "ssh version 2", "no telnet 0.0.0.0 0.0.0.0 inside", "logging enable", "snmp-server group ... v3 priv").`,
+Remediation must use real ASA/FTD CLI (e.g., "ssh version 2", "no telnet 0.0.0.0 0.0.0.0 outside", "snmp-server group ... v3 priv").`,
 
   fortigate: `PLATFORM: Fortinet FortiGate (FortiOS). Config is block-structured: "config ... / edit ... / set ... / next / end".
 Audit these areas and cite the exact line as evidence:
-- Firewall policy: any-any or overly broad policies, policies missing security profiles (av, ips, webfilter, app, ssl-ssh-profile), "set logtraffic all" missing, disabled implicit-deny logging.
-- Interfaces/zones: untrusted interfaces with admin access enabled (set allowaccess including http/telnet/ping).
-- Admin access: trusted hosts (trusthost) not set, HTTP/Telnet admin enabled (should be HTTPS/SSH only), "set admintimeout" too high, password-policy, two-factor for admins.
+- Firewall policy: any-any or overly broad policies, missing security profiles (av, ips, webfilter), "set logtraffic all" missing.
+- Interfaces/zones: untrusted interfaces with admin access enabled (http/telnet/ping).
+- Admin access: trusted hosts not set, HTTP/Telnet admin enabled, "set admintimeout" too high, password-policy, two-factor missing.
 - SNMP: v1/v2c communities vs SNMPv3.
-- Logging: logging enabled and forwarded (syslogd / FortiAnalyzer), event logging on.
-- VPN/crypto: IPsec phase1/phase2 proposals using weak DH (group 1/2/5) or weak encryption (des/3des), IKEv1 aggressive mode.
-- DoS policy presence, default-profile usage, NTP configured.
-Remediation must use real FortiOS CLI (config/edit/set/next/end), e.g., "config system global / set admin-https-redirect enable", "set allowaccess ssh https", "set logtraffic all".`,
+- Logging: syslogd / FortiAnalyzer forwarding, event logging on.
+- VPN/crypto: weak DH groups (1/2/5), DES/3DES, IKEv1 aggressive mode.
+Remediation must use real FortiOS CLI (config/edit/set/next/end).`,
 
-  palo_alto: `PLATFORM: Palo Alto Networks (PAN-OS). Config may be "set"-format CLI or XML export; interpret either.
+  palo_alto: `PLATFORM: Palo Alto Networks (PAN-OS). Config may be set-format CLI or XML; interpret either.
 Audit these areas and cite the exact element as evidence:
-- Security policy: any-any rules, rules without a Security Profile Group (AV/AS/Vuln/URL/File/WildFire), "action allow" with "log-end no", port-based rules that should be App-ID based, permissive intrazone/interzone defaults.
-- Management profile: interface mgmt profiles permitting HTTP/Telnet, permitted-IP not restricted, GUI/SSH exposed broadly.
+- Security policy: any-any rules, rules without Security Profile Groups, "action allow" with "log-end no", port-based rules.
+- Management profile: mgmt profiles permitting HTTP/Telnet, permitted-IP not restricted.
 - Admin & auth: superuser sprawl, local-only admins, no MFA, weak password complexity.
 - Logging: log forwarding profiles attached, traffic logged at session end.
-- Threat prevention: missing/!default AV, Anti-Spyware, Vulnerability, URL filtering profiles; decryption policy absence where expected.
-- Zone protection / DoS profiles.
-- IKE/IPsec crypto profiles: weak DH groups, 3DES/DES, MD5, missing PFS.
-Remediation must use real PAN-OS set-CLI (e.g., "set deviceconfig system permitted-ip ...", "set rulebase security rules <name> profile-setting group <grp>", "set ... log-end yes").`,
+- Threat prevention: missing AV, Anti-Spyware, Vulnerability, URL filtering profiles.
+- IKE/IPsec crypto: weak DH groups, 3DES/DES, MD5, missing PFS.
+Remediation must use real PAN-OS set-CLI.`,
 
-  checkpoint: `PLATFORM: Check Point (Gaia OS / R8x). Gaia config comes from "show configuration" (a list of set/add commands); the security rulebase often lives on the management server and may be provided separately. Assess what is present and note what cannot be evaluated.
+  checkpoint: `PLATFORM: Check Point Gaia (R80/R81). Config may be Gaia CLI ("set", "show") or policy exports.
 Audit these areas and cite the exact element as evidence:
-- Security rulebase: a permissive any-any rule, a missing Stealth rule (protecting the gateway), a final Cleanup rule that drops and logs, rules with Track set to None (no logging), overly broad services.
-- Management plane: Gaia admin access restricted to specific networks, HTTPS/SSH only, allowed GUI clients limited, expert-mode password set, strong admin accounts.
-- SNMP: v3 with auth/priv rather than v1/v2c communities.
-- Logging: Track configured on rules, logs sent to a management/log server.
-- NTP configured; anti-spoofing enabled on interface topology.
-- VPN: community crypto using strong DH groups and ciphers (no DES/3DES/MD5), PFS enabled.
-Remediation should use Gaia clish ("set") and SmartConsole policy steps (e.g., add a Stealth and Cleanup rule, set rule Track to Log).`,
+- Security policy: any-any rules, permissive rulebase, missing cleanup rule with logging, stealth rule absent (protecting firewall itself).
+- Management access: Gaia portal exposed broadly, SSH restricted to management hosts only, idle timeout set.
+- Admin accounts: default admin account renamed, strong password policy, role-based access.
+- Logging: logs sent to Smart Log / Log Server, track set on all rules, implied rules logged.
+- SNMP: v1/v2c communities vs SNMPv3.
+- NTP: configured and synced.
+- Backup and SIC: SIC certificate health, scheduled backups configured.
+Remediation must use real Gaia CLI or SmartConsole policy guidance.`,
 
-  sonicwall: `PLATFORM: SonicWall (SonicOS). NOTE: the default exported settings file (.exp) is encoded and not human-readable — the user should paste the readable running config or Tech Support Report (TSR) text. If the input looks encoded/base64, say so and stop.
+  sonicwall: `PLATFORM: SonicWall (SonicOS). Config is typically exported XML or CLI.
 Audit these areas and cite the exact element as evidence:
-- Access rules: any-any or overly broad rules, WAN-to-LAN exposure, logging disabled on rules.
-- Management: HTTPS/SSH admin only, administration from the WAN disabled, admin idle timeout set, default admin account renamed and password changed, GMS/cloud management secured.
-- SNMP: v3 rather than community strings.
-- Logging/syslog configured; security services (Gateway AV, IPS, content filtering) enabled on the relevant zones.
-- VPN: IKEv2 with strong DH groups and ciphers; DoS/flood protection enabled.
-Remediation should reference SonicOS settings (UI path plus CLI where applicable).`,
+- Access rules: any-to-any rules, rules missing application control or content filtering, logging disabled on rules.
+- Management: HTTP management enabled (should be HTTPS only), management restricted to specific hosts, SSH enabled, inactivity timeout.
+- Admin accounts: default "admin" account password, additional admin accounts, guest management accounts.
+- Logging: syslog server configured, logging on deny rules, log redundancy filter.
+- SNMP: community strings, SNMPv3 preferred.
+- VPN: IKEv1 aggressive mode, weak DH groups, DES/3DES, pre-shared keys vs certificates.
+- Geo-IP and botnet filtering enabled.
+Remediation must use real SonicOS guidance.`,
 
-  sophos: `PLATFORM: Sophos Firewall (SFOS — XGS/XG). Config is typically an XML export or pulled via API.
+  sophos: `PLATFORM: Sophos Firewall (SFOS). Config is typically XML export or CLI.
 Audit these areas and cite the exact element as evidence:
-- Firewall rules: any-any or overly broad rules, rules with no security profile (IPS, web, app control), logging disabled on rules, default LAN-to-WAN allow.
-- Admin access: device access restricted per zone, HTTPS/SSH only (no HTTP/Telnet on untrusted zones), MFA for admins, strong admin password.
-- SNMP v3; logging/syslog to a central server.
-- IPS and threat protection policies actually applied to rules (not just defined).
-- VPN crypto using strong proposals; NTP configured; DoS and spoof protection enabled.
-Remediation should reference SFOS WebAdmin paths (and the advanced shell where relevant).`,
+- Firewall rules: any-any rules, rules missing IPS/web/app control policies, logging disabled.
+- Management: HTTP admin access, admin allowed from untrusted zones, inactivity timeout, two-factor auth for admin.
+- Admin accounts: default credentials, unused accounts, super admin sprawl.
+- Logging: syslog forwarding configured, log all denied traffic, local logging retention.
+- IPS and WAF policies: IPS policy applied to internet-facing rules, WAF enabled where applicable.
+- VPN: IPsec phase1/2 using weak ciphers (DES, MD5, DH group 1/2/5), SSL VPN certificate validity.
+- Email and web protection active.
+Remediation must use real SFOS CLI or admin console guidance.`,
 
-  watchguard: `PLATFORM: WatchGuard Firebox (Fireware). Config is typically a Fireware XML export.
+  watchguard: `PLATFORM: WatchGuard Firebox (Fireware). Config is typically XML export.
 Audit these areas and cite the exact element as evidence:
-- Policies: any-any or overly broad policies, logging not enabled per policy, services not restricted, proxy policies used where deep inspection is expected.
-- Default Packet Handling / Default Threat Protection enabled (drop spoofed, flood, and unhandled external packets).
-- Management: administrative access restricted, HTTPS/SSH only, strong passphrases.
-- SNMP v3; logging to Dimension or a syslog server.
-- BOVPN crypto using strong Phase 1/Phase 2 proposals (no DES/3DES/MD5, strong DH, PFS).
-Remediation should reference Fireware (Policy Manager / Web UI paths, plus CLI where applicable).`,
+- Firewall policies: any-any policies, policies missing Application Control or IPS, logging disabled on policies.
+- Management: management access allowed from any IP, HTTP admin enabled, Firebox management restricted to trusted hosts.
+- Admin accounts: default admin/status accounts, password strength, role-based access.
+- Logging: WatchGuard Log Server or syslog configured, denied packets logged.
+- SNMP: v2c community strings, SNMPv3 with auth/priv.
+- VPN: weak phase1/2 proposals, aggressive mode IKEv1, missing PFS, pre-shared key length.
+- Branch Office VPN certificate vs PSK usage.
+Remediation must use real Fireware CLI or Policy Manager guidance.`,
 
-  juniper_srx: `PLATFORM: Juniper SRX (Junos). Config comes from "show configuration" in set-format or hierarchical format; interpret either.
+  juniper_srx: `PLATFORM: Juniper SRX (Junos). Config is Junos hierarchical CLI ("set" format or bracketed).
 Audit these areas and cite the exact element as evidence:
-- Security policies: a default-deny posture, any-any permits, policies without "then { log; }", overly broad source/destination/application.
-- Zones & screens: screen (IDS) options for spoofing, floods, and scans applied to untrusted zones.
-- Management: telnet disabled and SSH used ("delete system services telnet", "set system services ssh"), management restricted to fxp0/dedicated interface, root authentication and login retry/idle limits, no weak services.
-- SNMP v3; syslog configured; NTP with authentication.
-- IKE/IPsec proposals: strong DH groups and ciphers (no DES/3DES/MD5), PFS enabled.
-Remediation must use real Junos set-style CLI (e.g., "set security policies ... then log session-close", "delete system services telnet", "set system services ssh protocol-version v2").`,
+- Security policies: permit-all rules, policies missing application inspection or IDP, logging disabled ("log { session-close; }").
+- Zones: management zone not restricted, fxp0 management interface accessible from untrusted zones.
+- Management: Telnet enabled (should be SSH only), management restricted to specific hosts, login class permissions.
+- Authentication: local-only auth vs RADIUS/TACACS+, root login permitted from network, idle-timeout on login classes.
+- Logging: syslog to remote server, security log mode (stream vs event), log on deny policies.
+- SNMP: v2c communities vs SNMPv3, restrict SNMP to management hosts.
+- VPN/IKE: weak DH groups (group 1/2/5), DES/3DES/MD5, IKEv1 aggressive mode, missing PFS.
+Remediation must use real Junos set-CLI.`,
 
-  pfsense: `PLATFORM: pfSense / OPNsense. Config is an XML backup (config.xml) with a <pfsense> or <opnsense> root.
+  pfsense: `PLATFORM: pfSense / OPNsense. Config is XML export (config.xml) or CLI.
 Audit these areas and cite the exact element as evidence:
-- Firewall rules: any-any rules (especially inbound on WAN), a clear default-deny posture, logging on key rules, unused or overly broad rules.
-- Management: WebGUI served over HTTPS, admin access restricted (no WAN management), default admin password changed, SSH using key authentication if enabled.
-- Services: unused services/packages disabled; remote syslog configured; NTP set.
-- VPN: IPsec/OpenVPN using strong ciphers and DH/EC groups (no weak/legacy), no aggressive mode.
-- NAT scope reasonable; firmware/package versions reasonably current.
-Remediation should reference pfSense/OPNsense WebGUI paths (config is XML, so changes are made through the UI).`,
+- Firewall rules: pass-any rules on WAN, missing block rules, no logging on rules, anti-lockout rule scope.
+- Management: WebGUI accessible from WAN, HTTP instead of HTTPS, management not restricted to LAN/VPN, SSH enabled with root login or password auth.
+- Admin accounts: default admin account, password strength, additional accounts with unnecessary privileges.
+- Logging: remote syslog configured, firewall logging enabled, auth logging enabled.
+- SNMP: community strings if SNMP package installed, SNMPv3 preferred.
+- VPN (OpenVPN/IPsec): weak cipher suites (DES, BF-CBC, MD5), TLS auth missing on OpenVPN, weak DH params.
+- Packages: unneeded packages installed, outdated versions.
+- DNS Resolver: DNS over TLS enabled, DNSSEC validation active.
+Remediation must use real pfSense/OPNsense GUI or CLI guidance.`,
 };
 
-// --- Framework blocks (v1) ---
+// --- Framework blocks ---
 const FRAMEWORK_BLOCKS = {
-  pci_dss_4: `FRAMEWORK: PCI DSS v4.0. Assess only firewall/network-security-control-relevant requirements and map each finding to a real requirement number:
-- 1.2.1 Configuration standards for network security controls (NSCs) are defined and applied.
-- 1.2.5 Only necessary services, protocols, and ports are allowed; all in use are identified and approved.
-- 1.2.6 Security features are defined for any insecure services/protocols in use.
-- 1.2.7 NSC configurations are reviewed at least every six months (note if no evidence of change control/review).
-- 1.3.1 / 1.3.2 Inbound and outbound traffic to/from the CDE is restricted to only what is necessary.
-- 1.4.1 NSCs are implemented between trusted and untrusted networks.
+  pci_dss_4: `FRAMEWORK: PCI DSS v4.0. Map each finding to a real requirement number:
+- 1.2.1 Configuration standards for NSCs defined and applied.
+- 1.2.5 Only necessary services, protocols, and ports are allowed.
+- 1.2.6 Security features defined for any insecure services in use.
+- 1.3.1 / 1.3.2 Inbound and outbound traffic to/from the CDE restricted to only what is necessary.
+- 1.4.1 NSCs implemented between trusted and untrusted networks.
 - 1.4.3 Anti-spoofing measures detect and block forged source IPs.
-- 1.4.4 System components storing cardholder data are not directly accessible from untrusted networks.
-- 1.5.1 Controls protect against threats from computing devices that connect to both untrusted networks and the CDE.
-- 2.2.1 / 2.2.2 Configuration standards; no vendor default accounts/passwords (remove or change defaults).
-- 2.2.7 Non-console administrative access is encrypted (no Telnet/HTTP for management).
+- 1.4.4 System components storing cardholder data not directly accessible from untrusted networks.
+- 2.2.1 / 2.2.2 Configuration standards; no vendor default accounts/passwords.
+- 2.2.7 Non-console administrative access is encrypted (no Telnet/HTTP).
 - 8.3 / 8.4 Strong authentication and MFA for administrative access.
-- 10.2.x / 10.4 Audit logs capture access and security events; logs are reviewed.
-Where a control cannot be confirmed from the provided config, state that explicitly rather than assuming compliance.`,
+- 10.2.x / 10.4 Audit logs capture access and security events; logs reviewed.
+Where a control cannot be confirmed from the provided config, state that explicitly.`,
 
-  cis: `FRAMEWORK: CIS Benchmarks. CIS publishes vendor-specific benchmarks (CIS Cisco ASA, CIS Palo Alto Networks, CIS Fortinet FortiGate). Map each finding to the relevant CIS recommendation. Reference real recommendation areas; if you are not certain of an exact recommendation number, cite the control area/topic precisely (e.g., "CIS Cisco ASA — Management Plane: disable Telnet") rather than inventing a number.
+  cis: `FRAMEWORK: CIS Benchmarks (vendor-specific). Map each finding to the relevant CIS control area. If unsure of an exact number, cite the control area precisely (e.g., "CIS Cisco ASA — Management Plane: disable Telnet").
 Core CIS control areas for firewalls:
-- Management plane hardening: disable Telnet/HTTP, SSHv2 only, restrict management to specific hosts, idle/exec timeouts, login banner.
+- Management plane hardening: disable Telnet/HTTP, SSHv2 only, restrict management to specific hosts, idle timeouts, login banner.
 - Authentication & accounts: centralized AAA, no default/shared accounts, strong password policy, MFA for admins.
-- Logging & monitoring: NTP configured with authentication, syslog to a central server, appropriate logging severity, log denied traffic.
-- Control plane: routing protocol authentication, ICMP hardening.
-- Data plane: deny-by-default policy, anti-spoofing, no any-any rules, segment trusted/untrusted.
+- Logging & monitoring: NTP with authentication, syslog to central server, appropriate severity, log denied traffic.
+- Data plane: deny-by-default, anti-spoofing, no any-any rules, segment trusted/untrusted.
 - SNMP: SNMPv3 with auth/priv; no public/private or v2c communities.
 - Secure VPN: strong DH groups, AES (not DES/3DES), SHA (not MD5), PFS enabled.`,
 };
 
 function scrubSecrets(text) {
   let out = String(text);
-  // Redact secret values while keeping the directive so context is preserved.
   out = out.replace(
     /\b(password|passwd|secret|pre-shared-key|key-string|psksecret|passphrase|ppk|psk)\b(\s+(?:\d+|ENC|7|5))?\s+\S+/gi,
     (_m, kw, enc) => `${kw}${enc || ""} [REDACTED]`
@@ -161,50 +167,50 @@ function scrubSecrets(text) {
 }
 
 function buildSystem(vendor, framework) {
-  return `You are FirewallIQ, a senior firewall and network-security configuration auditor. You audit a single device's running configuration against a compliance framework and produce an evidence-based report a consultant can hand to a client.
+  return `You are FirewallIQ, a senior firewall and network-security configuration auditor. You audit a single device's running configuration against a compliance framework and produce an evidence-based report.
 
 ${VENDOR_BLOCKS[vendor]}
 
 ${FRAMEWORK_BLOCKS[framework]}
 
 RULES
-- Be precise and evidence-based. For every finding, quote the exact configuration element it is based on as "evidence". If a control cannot be assessed from the provided configuration, set evidence to "Not present in the provided configuration" and treat it as a gap, not a pass.
-- Reference real control identifiers. If unsure of an exact number, cite the control area/topic precisely rather than inventing one.
-- Remediation must be concrete, copy-pasteable ${VENDORS[vendor]} CLI or steps wherever possible.
-- Include a few notable "pass" findings for controls that are correctly configured, so the report is balanced.
+- Be precise and evidence-based. For every finding, quote the exact configuration element as "evidence". If a control cannot be assessed, set evidence to "Not present in the provided configuration" and treat it as a gap.
+- Remediation must be concrete, copy-pasteable CLI wherever possible.
+- Include a few notable "pass" findings for controls that are correctly configured.
 
 SEVERITY
-- critical: directly exploitable or a major compliance failure (e.g., permit any-any to sensitive zones, plaintext management like Telnet/HTTP, default credentials, no logging where required).
-- high: a significant weakness or gap likely to fail an audit.
-- medium: a hardening gap or partial compliance.
+- critical: directly exploitable or major compliance failure (permit any-any, plaintext management, default credentials, no logging).
+- high: significant weakness or gap likely to fail an audit.
+- medium: hardening gap or partial compliance.
 - low: minor or best-practice.
 - pass: control is satisfied.
 
 SCORE
-Start at 100 and subtract by severity: critical -20 to -30, high -10 to -15, medium -5, low -2. Do not subtract for "pass". Floor at 0. Map the number to a label: 0-49 "At risk", 50-69 "Needs work", 70-84 "Fair", 85-94 "Strong", 95-100 "Hardened".
+Start at 100. Subtract: critical -20 to -25, high -10 to -12, medium -4, low -2. Do not subtract for pass. Floor at 0.
+Labels: 0-49 "At risk", 50-69 "Needs work", 70-84 "Fair", 85-94 "Strong", 95-100 "Hardened".
 
 OUTPUT
-Respond with ONLY a single JSON object and nothing else. No markdown, no code fences, no text before or after. Shape:
+Respond with ONLY a single valid JSON object. No markdown, no code fences, no preamble, no text before or after the JSON. Start your response with { and end with }.
+
 {
   "score": <integer 0-100>,
   "score_label": "<label>",
-  "summary": "<2-4 sentence executive summary>",
+  "summary": "<2-3 sentence executive summary>",
   "findings": [
     {
       "id": "F1",
       "severity": "critical|high|medium|low|pass",
       "title": "<short finding title>",
-      "control": "<framework control reference, e.g. 'PCI DSS 4.0 Req 1.4.3' or 'CIS Fortinet — Management Plane'>",
+      "control": "<framework control reference>",
       "evidence": "<exact config line(s) or 'Not present in the provided configuration'>",
       "remediation": "<concrete CLI or steps to fix>"
     }
   ]
-}
-Order findings by severity: critical, high, medium, low, then pass.`;
+}`;
 }
 
 function buildUser(vendor, framework, config) {
-  return `Audit the following ${VENDORS[vendor]} configuration against ${FRAMEWORKS[framework]}. Return only the JSON object.
+  return `Audit the following ${VENDORS[vendor]} configuration against ${FRAMEWORKS[framework]}. Return only the JSON object. Start with { and end with }.
 
 --- BEGIN CONFIGURATION ---
 ${config}
@@ -223,8 +229,9 @@ export default async (req) => {
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
+    console.error("FIREWALLIQ: ANTHROPIC_API_KEY is not set.");
     return json(
-      { error: "The audit engine isn't configured. Set ANTHROPIC_API_KEY in your Netlify environment variables." },
+      { error: "The audit engine is not configured. Set ANTHROPIC_API_KEY in Netlify environment variables." },
       500
     );
   }
@@ -233,15 +240,16 @@ export default async (req) => {
   try {
     body = await req.json();
   } catch {
-    return json({ error: "Invalid request." }, 400);
+    return json({ error: "Invalid request body." }, 400);
   }
 
   const { config, vendor, framework } = body || {};
   if (!config || !String(config).trim()) return json({ error: "Paste a configuration to audit." }, 400);
-  if (!VENDORS[vendor]) return json({ error: "Choose a supported vendor." }, 400);
-  if (!FRAMEWORKS[framework]) return json({ error: "Choose a supported framework." }, 400);
+  if (!VENDORS[vendor])    return json({ error: `Unsupported vendor: ${vendor}` }, 400);
+  if (!FRAMEWORKS[framework]) return json({ error: `Unsupported framework: ${framework}` }, 400);
 
   const scrubbed = scrubSecrets(config);
+  console.log(`FIREWALLIQ: audit started — vendor=${vendor} framework=${framework} config_chars=${scrubbed.length}`);
 
   let upstream;
   try {
@@ -261,21 +269,25 @@ export default async (req) => {
       }),
     });
   } catch (e) {
-    return json({ error: "Couldn't reach the audit engine. Try again." }, 502);
+    console.error("FIREWALLIQ: fetch to Anthropic failed:", e.message);
+    return json({ error: "Could not reach the audit engine. Try again." }, 502);
   }
 
   if (!upstream.ok || !upstream.body) {
     const detail = await upstream.text().catch(() => "");
-    return json({ error: "The audit engine returned an error.", detail: detail.slice(0, 600) }, 502);
+    console.error(`FIREWALLIQ: Anthropic API error ${upstream.status}:`, detail.slice(0, 400));
+    return json({ error: "The audit engine returned an error. Check your API key and credits.", detail: detail.slice(0, 600) }, 502);
   }
 
-  // Parse the Anthropic SSE stream and forward text deltas to the client.
+  console.log("FIREWALLIQ: Anthropic stream started, forwarding to client...");
+
   const stream = new ReadableStream({
     async start(controller) {
       const reader = upstream.body.getReader();
       const decoder = new TextDecoder();
       const encoder = new TextEncoder();
       let buffer = "";
+      let charCount = 0;
       try {
         while (true) {
           const { done, value } = await reader.read();
@@ -291,15 +303,18 @@ export default async (req) => {
             try {
               const evt = JSON.parse(data);
               if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
-                controller.enqueue(encoder.encode(evt.delta.text));
+                const text = evt.delta.text;
+                charCount += text.length;
+                controller.enqueue(encoder.encode(text));
               }
             } catch {
-              // partial / non-JSON keep-alive line — ignore
+              // partial or non-JSON keep-alive line — ignore
             }
           }
         }
-      } catch {
-        // upstream interrupted — close gracefully with whatever we have
+        console.log(`FIREWALLIQ: stream complete, total chars forwarded: ${charCount}`);
+      } catch (e) {
+        console.error("FIREWALLIQ: stream error:", e.message);
       } finally {
         controller.close();
       }
@@ -307,6 +322,9 @@ export default async (req) => {
   });
 
   return new Response(stream, {
-    headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": "no-store",
+    },
   });
 };
