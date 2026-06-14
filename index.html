@@ -985,6 +985,17 @@
   .pdf-brand, .pdf-meta { display: none; }
 </style>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script>
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.on("init", function(user) {
+      if (!user) {
+        window.netlifyIdentity.on("login", function() {
+          document.location.href = "/";
+        });
+      }
+    });
+  }
+</script>
 </head>
 <body>
 
@@ -1325,6 +1336,8 @@ access-list OUTSIDE_IN extended permit ip any any
   </a>
 
 <script>
+  netlifyIdentity.init();
+
   const $ = (id) => document.getElementById(id);
   const SEV = {
     critical: { c: "var(--crit)", label: "Critical" },
@@ -1743,7 +1756,6 @@ access-list OUTSIDE_IN extended permit ip any any
 netlifyIdentity.on("init", user => updateAuthUI(user));
 netlifyIdentity.on("login", user => { updateAuthUI(user); netlifyIdentity.close(); });
 netlifyIdentity.on("logout", () => updateAuthUI(null));
-netlifyIdentity.init();
 
 function updateAuthUI(user) {
   const loginBtn = document.getElementById("login-btn");
