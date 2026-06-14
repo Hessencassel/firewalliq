@@ -1000,12 +1000,12 @@
             </svg>
           </div>
           <div class="wordmark">Firewall<span>IQ</span></div>
-          <div class="identity-bar" id="identity-bar" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
-            <span id="user-email" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);"></span>
-            <button id="login-btn" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
-            <button id="logout-btn" onclick="netlifyIdentity.logout()" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
-          </div>
         </a>
+        <div class="identity-bar" id="identity-bar" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+          <span id="user-email" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);"></span>
+          <button id="login-btn" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
+          <button id="logout-btn" onclick="netlifyIdentity.logout()" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
+        </div>
         <div class="nav-text-links">
           <a href="#features">Features</a>
           <a href="#pricing">Pricing</a>
@@ -1325,10 +1325,6 @@ access-list OUTSIDE_IN extended permit ip any any
   </a>
 
 <script>
-  netlifyIdentity.init({
-    APIUrl: "https://firewalliq.io/.netlify/identity"
-  });
-
   const $ = (id) => document.getElementById(id);
   const SEV = {
     critical: { c: "var(--crit)", label: "Critical" },
@@ -1747,6 +1743,7 @@ access-list OUTSIDE_IN extended permit ip any any
 netlifyIdentity.on("init", user => updateAuthUI(user));
 netlifyIdentity.on("login", user => { updateAuthUI(user); netlifyIdentity.close(); });
 netlifyIdentity.on("logout", () => updateAuthUI(null));
+netlifyIdentity.init();
 
 function updateAuthUI(user) {
   const loginBtn = document.getElementById("login-btn");
