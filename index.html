@@ -1325,6 +1325,10 @@ access-list OUTSIDE_IN extended permit ip any any
   </a>
 
 <script>
+  netlifyIdentity.init({
+    APIUrl: "https://firewalliq.io/.netlify/identity"
+  });
+
   const $ = (id) => document.getElementById(id);
   const SEV = {
     critical: { c: "var(--crit)", label: "Critical" },
