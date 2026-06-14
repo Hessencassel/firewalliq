@@ -1002,7 +1002,7 @@
           <div class="wordmark">Firewall<span>IQ</span></div>
           <div class="identity-bar" id="identity-bar" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
             <span id="user-email" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);"></span>
-            <button id="login-btn" onclick="netlifyIdentity.open()" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
+            <button id="login-btn" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
             <button id="logout-btn" onclick="netlifyIdentity.logout()" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
           </div>
         </a>
@@ -1762,6 +1762,13 @@ function updateAuthUI(user) {
     userEmail.textContent = "";
   }
 }
+
+document.getElementById("login-btn").addEventListener(
+  "click", () => netlifyIdentity.open("login")
+);
+document.getElementById("logout-btn").addEventListener(
+  "click", () => netlifyIdentity.logout()
+);
 
 async function startCheckout(plan) {
   const btn = document.querySelector(`button[onclick="startCheckout('${plan}')"]`);
