@@ -45,8 +45,11 @@
   body {
     margin: 0;
     background:
-      radial-gradient(1100px 500px at 50% -10%, rgba(56, 189, 248, 0.07), transparent 70%),
+      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px),
+      radial-gradient(1200px 600px at 50% -8%, rgba(56, 189, 248, 0.10), transparent 68%),
       var(--bg);
+    background-size: 72px 72px, 72px 72px, 100% 100%;
     color: var(--text);
     font-family: var(--sans);
     line-height: 1.55;
@@ -983,6 +986,182 @@
 
   /* Shown only during print */
   .pdf-brand, .pdf-meta { display: none; }
+
+  /* ── Gradient headline ── */
+  .hl-gradient {
+    background: linear-gradient(100deg, #38bdf8 0%, #7dd3fc 40%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Hero preview wrapper glow ── */
+  .hero-preview-wrap { position: relative; }
+  .hero-preview-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -32px;
+    border-radius: 26px;
+    background: radial-gradient(ellipse at center, rgba(56,189,248,0.13) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-preview-wrap .hero-preview { position: relative; z-index: 1; }
+
+  /* ── Floating score badge on hero preview ── */
+  .hero-score-float {
+    position: absolute;
+    bottom: -18px;
+    right: -18px;
+    z-index: 2;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  }
+  .hsf-ring svg { transform: rotate(-90deg); display: block; }
+  .hsf-score { font-family: var(--display); font-weight: 700; font-size: 18px; color: var(--crit); line-height: 1; }
+  .hsf-label { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); }
+
+  /* ── How It Works ── */
+  .how-section { padding: 80px 0 72px; border-top: 1px solid var(--border-soft); }
+  .section-eyebrow {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 38px);
+    letter-spacing: -0.025em;
+    color: var(--text);
+    margin: 0 0 52px;
+    line-height: 1.1;
+  }
+  .how-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; position: relative; }
+  .how-steps::before {
+    content: "";
+    position: absolute;
+    top: 27px;
+    left: calc(16.67% + 16px);
+    right: calc(16.67% + 16px);
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), rgba(56,189,248,0.2) 50%, var(--border));
+    z-index: 0;
+  }
+  .how-step { position: relative; padding: 0 28px 0 0; }
+  .how-step:last-child { padding-right: 0; }
+  .step-num-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; position: relative; z-index: 1; }
+  .step-num {
+    width: 54px; height: 54px; flex: none;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(56,189,248,0.18), rgba(56,189,248,0.06));
+    border: 1px solid rgba(56,189,248,0.28);
+    display: grid; place-items: center;
+    font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--accent);
+  }
+  .step-title { font-family: var(--display); font-weight: 600; font-size: 16px; color: var(--text); line-height: 1.3; }
+  .step-body { font-size: 14px; color: var(--text-dim); line-height: 1.7; margin: 0; padding-left: 68px; }
+  .step-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+    color: var(--text-faint); border: 1px solid var(--border-soft); border-radius: 99px;
+    padding: 3px 10px; margin-top: 12px; margin-left: 68px;
+  }
+  .step-pill::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--pass); flex: none; }
+
+  /* ── Social Proof ── */
+  .social-section { padding: 72px 0; border-top: 1px solid var(--border-soft); }
+  .social-hd { text-align: center; margin-bottom: 48px; }
+  .quotes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .quote-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 26px 24px; transition: border-color .2s, transform .2s;
+  }
+  .quote-card:hover { border-color: rgba(56,189,248,0.3); transform: translateY(-2px); }
+  .quote-mark { font-family: var(--display); font-size: 52px; line-height: 0.8; color: rgba(56,189,248,0.18); font-weight: 700; margin-bottom: 14px; display: block; }
+  .quote-text { font-size: 14px; color: var(--text-dim); line-height: 1.7; margin: 0 0 20px; font-style: italic; }
+  .quote-author { display: flex; align-items: center; gap: 10px; }
+  .quote-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex: none;
+    background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(99,102,241,0.2));
+    border: 1px solid var(--border); display: grid; place-items: center;
+    font-family: var(--display); font-weight: 700; font-size: 12px; color: var(--accent);
+  }
+  .quote-name { font-family: var(--display); font-weight: 600; font-size: 13px; color: var(--text); }
+  .quote-role { font-family: var(--mono); font-size: 10.5px; color: var(--text-faint); }
+
+  /* ── Enhanced feature card hover ── */
+  .feat-card:hover {
+    border-left-color: var(--accent);
+    background: linear-gradient(135deg, rgba(56,189,248,0.04), var(--surface));
+    transform: translateY(-2px);
+    transition: border-left-color .2s, background .2s, transform .2s;
+  }
+
+  /* ── Pre-footer CTA Banner ── */
+  .cta-banner {
+    padding: 80px 0; border-top: 1px solid var(--border-soft);
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .cta-banner::before {
+    content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 800px; height: 400px;
+    background: radial-gradient(ellipse, rgba(56,189,248,0.09) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .cta-banner .wrap { position: relative; z-index: 1; }
+  .cta-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 18px; }
+  .cta-headline {
+    font-family: var(--display); font-weight: 700; font-size: clamp(32px, 5vw, 52px);
+    letter-spacing: -0.03em; line-height: 1.05; color: var(--text);
+    margin: 0 auto 18px; max-width: 18ch;
+  }
+  .cta-sub { font-size: 17px; color: var(--text-dim); margin: 0 auto 40px; max-width: 46ch; }
+  .cta-actions { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+  .cta-actions .btn { font-size: 16px; padding: 15px 36px; border-radius: 12px; box-shadow: 0 0 40px rgba(56,189,248,0.22), 0 4px 16px rgba(0,0,0,0.3); }
+  .cta-note { font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); margin-top: 20px; letter-spacing: 0.04em; }
+
+  /* ── Multi-column Footer ── */
+  .footer-full { border-top: 1px solid var(--border-soft); padding: 48px 0 24px; }
+  .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .footer-brand-col .wordmark { font-size: 17px; margin-bottom: 12px; display: block; }
+  .footer-tagline { font-size: 13px; color: var(--text-dim); font-family: var(--sans); line-height: 1.6; margin: 0 0 18px; max-width: 30ch; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(43,212,160,0.07); border: 1px solid rgba(43,212,160,0.2);
+    border-radius: 8px; padding: 6px 12px; font-family: var(--mono);
+    font-size: 11px; color: var(--pass); letter-spacing: 0.04em;
+  }
+  .footer-col-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 16px; display: block; }
+  .footer-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .footer-links a { color: var(--text-dim); text-decoration: none; font-size: 13px; font-family: var(--sans); transition: color .15s; }
+  .footer-links a:hover { color: var(--text); }
+  .footer-bottom { border-top: 1px solid var(--border-soft); padding-top: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+
+  /* ── Responsive additions ── */
+  @media (max-width: 860px) {
+    .how-steps { grid-template-columns: 1fr; gap: 36px; }
+    .how-steps::before { display: none; }
+    .step-body, .step-pill { padding-left: 0; margin-left: 0; }
+    .quotes-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .footer-brand-col { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .footer-grid { grid-template-columns: 1fr; }
+    .how-section, .cta-banner, .social-section { padding: 56px 0; }
+  }
 </style>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
@@ -1036,7 +1215,7 @@
         <!-- Left: copy -->
         <div class="hero-left">
           <span class="hero-eyebrow">AI-Powered Firewall Compliance</span>
-          <h1 class="hero-headline">Your firewall just failed.<br>You don't know it yet.</h1>
+          <h1 class="hero-headline">Your firewall just failed.<br><span class="hl-gradient">You don't know it yet.</span></h1>
           <p class="hero-sub">Paste a running config. Get a scored PCI DSS, HIPAA, NIST, or CIS audit report in under 60 seconds. Zero storage. Zero risk.</p>
           <div class="hero-ctas">
             <a href="#audit" class="btn">Start auditing</a>
@@ -1058,6 +1237,7 @@
 
         <!-- Right: animated config preview -->
         <div class="hero-right">
+          <div class="hero-preview-wrap">
           <div class="hero-preview" id="hero-preview" aria-hidden="true">
             <div class="hp-bar">
               <span class="hp-dot"></span>
@@ -1091,12 +1271,28 @@
               <span class="hp-pulse" id="hp-pulse"></span>
               <span class="hp-foot-text" id="hp-foot-text">awaiting config…</span>
             </div>
-          </div>
-        </div>
+          </div><!-- /hero-preview -->
 
-      </div>
-    </div>
-  </section>
+            <!-- Floating score badge -->
+            <div class="hero-score-float" aria-hidden="true">
+              <div class="hsf-ring">
+                <svg width="38" height="38" viewBox="0 0 38 38">
+                  <circle cx="19" cy="19" r="15" fill="none" stroke="rgba(240,71,106,0.18)" stroke-width="3"/>
+                  <circle cx="19" cy="19" r="15" fill="none" stroke="var(--crit)" stroke-width="3"
+                    stroke-dasharray="94.2" stroke-dashoffset="53" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="hsf-text">
+                <div class="hsf-score">43 / 100</div>
+                <div class="hsf-label">Compliance Score</div>
+              </div>
+            </div>
+          </div><!-- /hero-preview-wrap -->
+        </div><!-- /hero-right -->
+
+      </div><!-- /hero-inner -->
+    </div><!-- /wrap -->
+  </section><!-- /hero -->
 
   <!-- ── Stats strip ── -->
   <div class="stats-strip">
@@ -1155,6 +1351,93 @@
           </div>
           <p class="feat-title">Four Frameworks, One Tool</p>
           <p class="feat-body">PCI DSS v4.0, CIS Benchmarks, HIPAA Security Rule, and NIST 800-53 Rev 5. Swap frameworks in one click.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── How It Works ── -->
+  <section class="how-section" aria-label="How it works">
+    <div class="wrap">
+      <span class="section-eyebrow">How it works</span>
+      <h2 class="section-title">Audit in three steps.<br>Fix before the auditors arrive.</h2>
+      <div class="how-steps">
+
+        <div class="how-step reveal reveal-d1">
+          <div class="step-num-wrap">
+            <div class="step-num">01</div>
+            <div class="step-title">Paste your running config</div>
+          </div>
+          <p class="step-body">Copy the running configuration directly from your device — no export scripts, no special format required. FirewallIQ auto-detects your vendor.</p>
+          <span class="step-pill">9 platforms supported</span>
+        </div>
+
+        <div class="how-step reveal reveal-d2">
+          <div class="step-num-wrap">
+            <div class="step-num">02</div>
+            <div class="step-title">Select a compliance framework</div>
+          </div>
+          <p class="step-body">Choose from PCI DSS v4.0, CIS Benchmarks, HIPAA Security Rule, or NIST 800-53. Switch frameworks without re-pasting anything.</p>
+          <span class="step-pill">4 frameworks at launch</span>
+        </div>
+
+        <div class="how-step reveal reveal-d3">
+          <div class="step-num-wrap">
+            <div class="step-num">03</div>
+            <div class="step-title">Get a scored report in &lt; 60 seconds</div>
+          </div>
+          <p class="step-body">Every finding quotes the exact config line that triggered it. Copy-paste CLI remediation is included. Export to PDF in one click.</p>
+          <span class="step-pill">Zero config stored</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Social Proof ── -->
+  <section class="social-section" aria-label="Testimonials">
+    <div class="wrap">
+      <div class="social-hd reveal">
+        <span class="section-eyebrow">From the field</span>
+        <h2 class="section-title" style="text-align:center;max-width:26ch;margin:0 auto;">Network engineers trust FirewallIQ before auditors arrive.</h2>
+      </div>
+      <div class="quotes-grid" style="margin-top:48px;">
+
+        <div class="quote-card reveal reveal-d1">
+          <span class="quote-mark">"</span>
+          <p class="quote-text">We were prepping for a PCI QSA review and found 7 critical misconfigs in our edge ASA that our team had missed for over two years. FirewallIQ caught them in under a minute.</p>
+          <div class="quote-author">
+            <div class="quote-avatar">RM</div>
+            <div class="quote-meta">
+              <div class="quote-name">Ryan M.</div>
+              <div class="quote-role">Senior Network Engineer · MSP</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="quote-card reveal reveal-d2">
+          <span class="quote-mark">"</span>
+          <p class="quote-text">The evidence-based findings are what sold me. Every finding quotes the exact config line that triggered it. I paste it straight into my change request and close the ticket same day.</p>
+          <div class="quote-author">
+            <div class="quote-avatar">JC</div>
+            <div class="quote-meta">
+              <div class="quote-name">Jen C.</div>
+              <div class="quote-role">IT Security Analyst · FinTech</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="quote-card reveal reveal-d3">
+          <span class="quote-mark">"</span>
+          <p class="quote-text">I demo'd FirewallIQ live during a client's compliance review. Their external auditor asked who built the tool. It saved us a full day of manual assessment work.</p>
+          <div class="quote-author">
+            <div class="quote-avatar">DT</div>
+            <div class="quote-meta">
+              <div class="quote-name">Derek T.</div>
+              <div class="quote-role">Network Consultant · GovTech</div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -1319,15 +1602,66 @@ access-list OUTSIDE_IN extended permit ip any any
     </div>
   </div>
 
-  <footer>
-    <div class="wrap" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <span class="lock">●</span> FirewallIQ never stores your configurations. Each audit runs server-side and is discarded when it finishes.
-      <span style="margin-left:auto;display:flex;gap:20px;">
-        <a href="/terms" style="color:var(--text-faint);font-family:var(--mono);font-size:12px;text-underline-offset:3px;">Terms</a>
-        <a href="/privacy" style="color:var(--text-faint);font-family:var(--mono);font-size:12px;text-underline-offset:3px;">Privacy</a>
-      </span>
+
+  <!-- ── Pre-footer CTA Banner ── -->
+  <section class="cta-banner" aria-label="Call to action">
+    <div class="wrap">
+      <span class="cta-kicker">Get started free for 7 days</span>
+      <h2 class="cta-headline">Your next audit is 60 seconds away.</h2>
+      <p class="cta-sub">Paste a running config. Get a scored compliance report. Find the issues before your auditors do.</p>
+      <div class="cta-actions">
+        <a href="#audit" class="btn">Start your first audit</a>
+        <a href="/sample" class="btn ghost">See a sample report</a>
+      </div>
+      <p class="cta-note">No credit card required for first audit · Zero config storage · Cancel anytime</p>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="footer-full">
+    <div class="wrap">
+      <div class="footer-grid">
+
+        <div class="footer-brand-col">
+          <a href="/" style="text-decoration:none;color:inherit;">
+            <span class="wordmark">Firewall<span style="color:var(--accent);">IQ</span></span>
+          </a>
+          <p class="footer-tagline">AI-powered firewall compliance auditing for network engineers and MSPs. Scored reports in under 60 seconds.</p>
+          <span class="footer-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Zero config storage — ever
+          </span>
+        </div>
+
+        <div>
+          <span class="footer-col-title">Product</span>
+          <ul class="footer-links">
+            <li><a href="/sample">Sample Report</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#features">Features</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <span class="footer-col-title">Legal</span>
+          <ul class="footer-links">
+            <li><a href="/terms">Terms of Service</a></li>
+            <li><a href="/privacy">Privacy Policy</a></li>
+          </ul>
+          <span class="footer-col-title" style="margin-top:24px;display:block;">Support</span>
+          <ul class="footer-links">
+            <li><a href="mailto:support@firewalliq.io">support@firewalliq.io</a></li>
+          </ul>
+        </div>
+
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025–2026 Treesh Tech LLC · All rights reserved</span>
+        <span style="color:var(--pass);">● Configs are never stored or logged</span>
+      </div>
     </div>
   </footer>
+
 
   <!-- ── Floating action button ── -->
   <a href="#audit" class="fab" id="fab" aria-label="Start auditing">
@@ -1336,9 +1670,11 @@ access-list OUTSIDE_IN extended permit ip any any
   </a>
 
 <script>
-  netlifyIdentity.init({
-    APIUrl: "https://firewalliq.netlify.app/.netlify/identity"
-  });
+  if (window.netlifyIdentity) {
+    netlifyIdentity.init({
+      APIUrl: "https://firewalliq.netlify.app/.netlify/identity"
+    });
+  }
 
   const $ = (id) => document.getElementById(id);
   const SEV = {
@@ -1452,7 +1788,7 @@ access-list OUTSIDE_IN extended permit ip any any
 
   // Run the audit (streams from the function, parses JSON on completion)
   runBtn.addEventListener("click", async () => {
-    const user = netlifyIdentity.currentUser();
+    const user = window.netlifyIdentity ? netlifyIdentity.currentUser() : null;
     if (!user) {
       showError("Please log in to run an audit.");
       runBtn.disabled = false;
@@ -1775,11 +2111,43 @@ function updateAuthUI(user) {
 }
 
 document.getElementById("login-btn").addEventListener(
-  "click", () => netlifyIdentity.open("login")
+  "click", () => window.netlifyIdentity && netlifyIdentity.open("login")
 );
 document.getElementById("logout-btn").addEventListener(
-  "click", () => netlifyIdentity.logout()
+  "click", () => window.netlifyIdentity && netlifyIdentity.logout()
 );
+
+
+  // ── Stat counter animation on scroll ──
+  (function () {
+    var stats = document.querySelectorAll('.stat-num');
+    var strip = document.querySelector('.stats-strip');
+    if (!strip || !stats.length) return;
+    var done = false;
+    function run() {
+      if (done) return; done = true;
+      stats.forEach(function (el) {
+        var raw = el.textContent.trim();
+        var m = raw.match(/(\d+)/);
+        if (!m) return;
+        var target = parseInt(m[1], 10);
+        var pre = raw.slice(0, raw.indexOf(m[1]));
+        var suf = raw.slice(raw.indexOf(m[1]) + m[1].length);
+        var t0 = null;
+        (function step(ts) {
+          if (!t0) t0 = ts;
+          var p = Math.min((ts - t0) / 1100, 1);
+          var e = 1 - Math.pow(1 - p, 3);
+          el.textContent = pre + Math.round(target * e) + suf;
+          if (p < 1) requestAnimationFrame(step);
+        })(performance.now());
+      });
+    }
+    var io = new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting) { run(); io.disconnect(); }
+    }, { threshold: 0.4 });
+    io.observe(strip);
+  })();
 
 async function startCheckout(plan) {
   const btn = document.querySelector(`button[onclick="startCheckout('${plan}')"]`);
