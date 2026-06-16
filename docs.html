@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Documentation — FirewallIQ</title>
+<meta name="description" content="FirewallIQ documentation — supported platforms, compliance frameworks, how to read your audit report, and pricing details." />
+<meta property="og:title" content="Documentation — FirewallIQ" />
+<meta property="og:description" content="Everything you need to run your first firewall compliance audit. Supported platforms, compliance frameworks, and how to read your report." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://firewalliq.io/docs" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Documentation — FirewallIQ" />
+<meta name="twitter:description" content="Everything you need to run your first firewall compliance audit. Supported platforms, compliance frameworks, and how to read your report." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='5' fill='%230a101c'/><path d='M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z' stroke='%2338bdf8' stroke-width='1.4' stroke-linejoin='round' fill='none'/><path d='M8.7 12.2l2.2 2.2 4.2-4.6' stroke='%2338bdf8' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a101c;
+    --surface: #111a2c;
+    --surface-2: #0e1626;
+    --border: #1f2c44;
+    --border-soft: #18233a;
+    --text: #e8eef8;
+    --text-dim: #93a1bd;
+    --text-faint: #64759a;
+    --accent: #38bdf8;
+    --accent-deep: #0ea5e9;
+    --crit: #f0476a;
+    --high: #fb8c42;
+    --med: #f2c94c;
+    --low: #5b9bd5;
+    --pass: #2bd4a0;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background:
+      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px),
+      radial-gradient(1200px 600px at 50% -8%, rgba(56, 189, 248, 0.10), transparent 68%),
+      var(--bg);
+    background-size: 72px 72px, 72px 72px, 100% 100%;
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Top Nav ── */
+  .topnav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(10, 16, 28, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    height: 62px;
+    gap: 24px;
+  }
+  .nav-text-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-left: auto;
+  }
+  .nav-text-links a {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color .15s;
+  }
+  .nav-text-links a:hover { color: var(--text); }
+  .nav-text-links a.active { color: var(--accent); }
+  .nav-cta {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #04121e;
+    background: var(--accent);
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: background .15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-cta:hover { background: #5cc9fb; }
+
+  /* Brand */
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .mark {
+    width: 34px; height: 34px; flex: none;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: linear-gradient(180deg, #14213a, #0d1424);
+    display: grid; place-items: center;
+    position: relative; overflow: hidden;
+  }
+  .mark svg { width: 20px; height: 20px; display: block; }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; }
+  .wordmark span { color: var(--accent); }
+
+  /* ── Shared section styles ── */
+  .section-eyebrow {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 38px);
+    letter-spacing: -0.025em;
+    color: var(--text);
+    margin: 0 0 14px;
+    line-height: 1.1;
+  }
+  .section-intro {
+    font-size: 16px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin: 0 0 44px;
+    max-width: 72ch;
+  }
+
+  /* ── Scroll reveal ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 400ms ease, transform 400ms ease;
+  }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+  .reveal-d1 { transition-delay: 80ms; }
+  .reveal-d2 { transition-delay: 160ms; }
+  .reveal-d3 { transition-delay: 240ms; }
+
+  /* ── Docs hero ── */
+  .docs-hero {
+    padding: 72px 0 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  .docs-hero::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%);
+    width: 900px;
+    height: 400px;
+    background: radial-gradient(ellipse at center, rgba(56,189,248,0.10) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .docs-hero .wrap { position: relative; z-index: 1; }
+  .docs-hero h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(32px, 5vw, 52px);
+    line-height: 1.07;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin: 0 0 20px;
+    max-width: 22ch;
+  }
+  .docs-hero-sub {
+    font-size: 17px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin: 0;
+    max-width: 64ch;
+  }
+
+  /* ── Docs sections ── */
+  .docs-section {
+    padding: 72px 0;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  /* ── Getting Started steps ── */
+  .doc-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; position: relative; }
+  .doc-steps::before {
+    content: "";
+    position: absolute;
+    top: 27px;
+    left: calc(16.67% + 16px);
+    right: calc(16.67% + 16px);
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), rgba(56,189,248,0.2) 50%, var(--border));
+    z-index: 0;
+  }
+  .doc-step { position: relative; padding: 0 28px 0 0; }
+  .doc-step:last-child { padding-right: 0; }
+  .doc-step-num-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; position: relative; z-index: 1; }
+  .doc-step-num {
+    width: 54px; height: 54px; flex: none;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(56,189,248,0.18), rgba(56,189,248,0.06));
+    border: 1px solid rgba(56,189,248,0.28);
+    display: grid; place-items: center;
+    font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--accent);
+  }
+  .doc-step-title { font-family: var(--display); font-weight: 600; font-size: 16px; color: var(--text); line-height: 1.3; }
+  .doc-step-body { font-size: 14px; color: var(--text-dim); line-height: 1.7; margin: 0; padding-left: 68px; }
+
+  /* ── Platform cards ── */
+  .platform-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .platform-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    border-radius: 12px;
+    padding: 20px 22px;
+    transition: border-left-color .2s ease, transform .2s ease;
+  }
+  .platform-card:hover { border-left-color: var(--accent); transform: translateY(-1px); }
+  .platform-name {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    margin: 0 0 6px;
+  }
+  .platform-note {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  /* ── Framework cards ── */
+  .framework-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .framework-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 26px 24px;
+    transition: border-color .2s ease, transform .2s ease;
+  }
+  .framework-card:hover { border-color: rgba(56,189,248,0.35); transform: translateY(-2px); }
+  .framework-name {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+  .framework-body {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  /* ── Report structure list ── */
+  .report-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .report-item {
+    display: flex;
+    gap: 20px;
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--border-soft);
+    transition: background .15s;
+  }
+  .report-item:last-child { border-bottom: 0; }
+  .report-item:hover { background: rgba(56,189,248,0.03); }
+  .report-item-name {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    min-width: 200px;
+    flex: 0 0 200px;
+    padding-top: 1px;
+  }
+  .report-item-desc {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin: 0;
+    flex: 1;
+  }
+
+  /* ── Plans ── */
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 720px;
+  }
+  .plan-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+  }
+  .plan-card.plan-featured {
+    border-color: transparent;
+    background:
+      linear-gradient(160deg, rgba(56,189,248,0.07) 0%, var(--surface) 60%) padding-box,
+      conic-gradient(from var(--border-angle),
+        var(--border)       0%,
+        var(--accent)      20%,
+        var(--accent-deep) 38%,
+        var(--accent)      56%,
+        var(--border)      70%,
+        var(--border)     100%
+      ) border-box;
+    animation: border-spin 5s linear infinite;
+  }
+  .plan-tier {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 0 0 12px;
+  }
+  .plan-price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+  .plan-price .dollar {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 42px;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    line-height: 1;
+  }
+  .plan-price .period {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  .plan-divider {
+    border: 0;
+    border-top: 1px solid var(--border-soft);
+    margin: 0 0 20px;
+  }
+  .plan-features {
+    list-style: none;
+    margin: 0 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .plan-features li {
+    font-size: 13.5px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.45;
+  }
+  .plan-features li::before {
+    content: "";
+    flex: none;
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Ccircle cx='7' cy='7' r='6.5' stroke='%2338bdf8' stroke-width='1'/%3E%3Cpath d='M4.5 7l1.8 1.8L9.5 5' stroke='%2338bdf8' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
+  .plans-note {
+    margin-top: 28px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    letter-spacing: 0.02em;
+  }
+  .plans-note a { color: var(--accent); text-underline-offset: 3px; }
+
+  /* ── FAQ ── */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  details.faq-item {
+    border-bottom: 1px solid var(--border-soft);
+  }
+  details.faq-item:last-child { border-bottom: 0; }
+  details.faq-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    transition: background .15s;
+    user-select: none;
+  }
+  details.faq-item summary::-webkit-details-marker { display: none; }
+  details.faq-item summary:hover { background: rgba(56,189,248,0.03); }
+  details.faq-item summary::after {
+    content: "";
+    width: 18px; height: 18px; flex: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' fill='none'%3E%3Cpath d='M4.5 6.75l4.5 4.5 4.5-4.5' stroke='%2364759a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+    transition: transform .2s ease;
+  }
+  details.faq-item[open] summary::after {
+    transform: rotate(180deg);
+  }
+  details.faq-item[open] summary { background: rgba(56,189,248,0.03); }
+  .faq-answer {
+    padding: 0 24px 20px;
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.75;
+  }
+  .faq-answer a { color: var(--accent); text-underline-offset: 3px; }
+
+  /* ── Animated border ── */
+  @property --border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  @keyframes border-spin { to { --border-angle: 360deg; } }
+
+  /* ── Multi-column Footer ── */
+  .footer-full { border-top: 1px solid var(--border-soft); padding: 48px 0 24px; }
+  .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .footer-brand-col .wordmark { font-size: 17px; margin-bottom: 12px; display: block; }
+  .footer-tagline { font-size: 13px; color: var(--text-dim); font-family: var(--sans); line-height: 1.6; margin: 0 0 18px; max-width: 30ch; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(43,212,160,0.07); border: 1px solid rgba(43,212,160,0.2);
+    border-radius: 8px; padding: 6px 12px; font-family: var(--mono);
+    font-size: 11px; color: var(--pass); letter-spacing: 0.04em;
+  }
+  .footer-col-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 16px; display: block; }
+  .footer-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .footer-links a { color: var(--text-dim); text-decoration: none; font-size: 13px; font-family: var(--sans); transition: color .15s; }
+  .footer-links a:hover { color: var(--text); }
+  .footer-bottom { border-top: 1px solid var(--border-soft); padding-top: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+
+  /* ── Responsive ── */
+  @media (max-width: 860px) {
+    .doc-steps { grid-template-columns: 1fr; gap: 36px; }
+    .doc-steps::before { display: none; }
+    .doc-step-body { padding-left: 0; }
+    .framework-grid { grid-template-columns: 1fr; }
+    .report-item { flex-direction: column; gap: 8px; }
+    .report-item-name { min-width: 0; flex: none; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .footer-brand-col { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .platform-grid { grid-template-columns: 1fr; }
+    .plans-grid { grid-template-columns: 1fr; max-width: 100%; }
+    .nav-text-links { display: none; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .docs-hero { padding: 52px 0 48px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .plan-card.plan-featured { animation: none; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const SUPABASE_URL      = "https://tqnbpkkzxrnnenpvdisy.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_ZyWkzDbxYe94AeqSEQJ1bw_PuIbueQO";
+  const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+</head>
+<body>
+
+  <!-- ── Sticky Top Nav ── -->
+  <nav class="topnav" aria-label="Site navigation">
+    <div class="wrap">
+      <div class="nav-inner">
+        <a href="/" class="brand" style="text-decoration:none;color:inherit;">
+          <div class="mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z" stroke="#38bdf8" stroke-width="1.4" stroke-linejoin="round"/>
+              <path d="M8.7 12.2l2.2 2.2 4.2-4.6" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="wordmark">Firewall<span>IQ</span></div>
+        </a>
+        <div class="identity-bar" id="identity-bar" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+          <span id="user-email" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);"></span>
+          <button id="login-btn" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
+          <button id="logout-btn" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
+        </div>
+        <div class="nav-text-links">
+          <a href="/#features">Features</a>
+          <a href="/#pricing">Pricing</a>
+          <a href="/docs" class="active">Docs</a>
+        </div>
+        <a href="/#audit" class="nav-cta">Start auditing</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Docs Hero ── -->
+  <div class="docs-hero">
+    <div class="wrap">
+      <span class="section-eyebrow">Documentation</span>
+      <h1>Everything you need to run your first audit</h1>
+      <p class="docs-hero-sub">FirewallIQ is designed to be self-explanatory, but here is a complete reference for supported platforms, compliance frameworks, and how to read your results.</p>
+    </div>
+  </div>
+
+  <!-- ── Section 1: Getting Started ── -->
+  <section class="docs-section" id="getting-started" aria-label="Getting started">
+    <div class="wrap">
+      <span class="section-eyebrow reveal">Getting started</span>
+      <h2 class="section-title reveal reveal-d1">Three steps to your first audit</h2>
+      <div class="doc-steps">
+
+        <div class="doc-step reveal reveal-d1">
+          <div class="doc-step-num-wrap">
+            <div class="doc-step-num">01</div>
+            <div class="doc-step-title">Create an account</div>
+          </div>
+          <p class="doc-step-body">Copy your firewall running configuration to your clipboard. FirewallIQ accepts CLI output directly — no export scripts, no special formatting required. Then create a free account at firewalliq.io and choose a plan.</p>
+        </div>
+
+        <div class="doc-step reveal reveal-d2">
+          <div class="doc-step-num-wrap">
+            <div class="doc-step-num">02</div>
+            <div class="doc-step-title">Paste your config</div>
+          </div>
+          <p class="doc-step-body">In the audit panel, select your firewall vendor from the Appliance dropdown. If you are unsure, FirewallIQ will auto-detect the vendor from your config as you paste it. Select your compliance framework, paste your config into the text area, and click Run Audit.</p>
+        </div>
+
+        <div class="doc-step reveal reveal-d3">
+          <div class="doc-step-num-wrap">
+            <div class="doc-step-num">03</div>
+            <div class="doc-step-title">Read your report</div>
+          </div>
+          <p class="doc-step-body">Your report streams in within 60 seconds. Each finding includes a severity rating, the exact config line that triggered it, the specific compliance control it maps to, and copy-paste CLI remediation commands. A compliance score from 0 to 100 summarizes overall posture.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 2: Supported Platforms ── -->
+  <section class="docs-section" id="platforms" aria-label="Supported platforms">
+    <div class="wrap">
+      <span class="section-eyebrow reveal">Supported platforms</span>
+      <h2 class="section-title reveal reveal-d1">Nine firewall platforms</h2>
+      <p class="section-intro reveal reveal-d2">FirewallIQ supports nine firewall platforms. Paste the running configuration directly from your device.</p>
+      <div class="platform-grid">
+
+        <div class="platform-card reveal reveal-d1">
+          <p class="platform-name">Cisco ASA / FTD</p>
+          <p class="platform-note">Flat CLI running-config from <code>show running-config</code></p>
+        </div>
+
+        <div class="platform-card reveal reveal-d2">
+          <p class="platform-name">Fortinet FortiGate</p>
+          <p class="platform-note">Block-structured FortiOS CLI from <code>show full-configuration</code></p>
+        </div>
+
+        <div class="platform-card reveal reveal-d1">
+          <p class="platform-name">Palo Alto Networks</p>
+          <p class="platform-note">PAN-OS set-format CLI or XML export</p>
+        </div>
+
+        <div class="platform-card reveal reveal-d2">
+          <p class="platform-name">Check Point Gaia</p>
+          <p class="platform-note">Gaia CLI output or policy export from SmartConsole</p>
+        </div>
+
+        <div class="platform-card reveal reveal-d1">
+          <p class="platform-name">SonicWall</p>
+          <p class="platform-note">SonicOS CLI or exported XML configuration</p>
+        </div>
+
+        <div class="platform-card reveal reveal-d2">
+          <p class="platform-name">Sophos Firewall</p>
+          <p class="platform-note">SFOS CLI output or XML export</p>
+        </div>
+
+        <div class="platform-card reveal reveal-d1">
+          <p class="platform-name">WatchGuard Firebox</p>
+          <p class="platform-note">Fireware CLI or XML Policy Manager export</p>
+        </div>
+
+        <div class="platform-card reveal reveal-d2">
+          <p class="platform-name">Juniper SRX</p>
+          <p class="platform-note">Junos hierarchical CLI in set format or bracketed format</p>
+        </div>
+
+        <div class="platform-card reveal reveal-d1">
+          <p class="platform-name">pfSense / OPNsense</p>
+          <p class="platform-note">config.xml export or CLI output</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 3: Compliance Frameworks ── -->
+  <section class="docs-section" id="frameworks" aria-label="Compliance frameworks">
+    <div class="wrap">
+      <span class="section-eyebrow reveal">Compliance frameworks</span>
+      <h2 class="section-title reveal reveal-d1">Four frameworks, one tool</h2>
+      <p class="section-intro reveal reveal-d2">Select the framework that matches your audit requirement. You can re-run the same config against multiple frameworks without re-pasting.</p>
+      <div class="framework-grid">
+
+        <div class="framework-card reveal reveal-d1">
+          <p class="framework-name">PCI DSS v4.0</p>
+          <p class="framework-body">For organizations handling cardholder data. FirewallIQ maps findings to specific requirement numbers including 1.2, 1.3, 1.4, 2.2, 8.3, and 10.2. Requirement citations are included in every finding.</p>
+        </div>
+
+        <div class="framework-card reveal reveal-d2">
+          <p class="framework-name">CIS Benchmarks</p>
+          <p class="framework-body">Vendor-specific CIS hardening guidance covering management plane, authentication, logging, data plane, SNMP, and VPN. Findings cite the relevant CIS control area by name.</p>
+        </div>
+
+        <div class="framework-card reveal reveal-d1">
+          <p class="framework-name">HIPAA Security Rule</p>
+          <p class="framework-body">For healthcare organizations and their business associates. Findings map to 45 CFR Part 164 safeguards including 164.312(a), 164.312(b), 164.312(d), and 164.312(e).</p>
+        </div>
+
+        <div class="framework-card reveal reveal-d2">
+          <p class="framework-name">NIST SP 800-53 Rev 5</p>
+          <p class="framework-body">For federal agencies and organizations following NIST guidance. Findings map to controls including AC-2, AC-3, AC-17, AU-2, CM-6, CM-7, IA-2, SC-8, and SI-2.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 4: Reading Your Report ── -->
+  <section class="docs-section" id="report" aria-label="Reading your report">
+    <div class="wrap">
+      <span class="section-eyebrow reveal">Reading your report</span>
+      <h2 class="section-title reveal reveal-d1">Every report follows the same structure</h2>
+      <p class="section-intro reveal reveal-d2">Every audit report follows the same structure.</p>
+      <div class="report-list reveal">
+
+        <div class="report-item">
+          <p class="report-item-name">Executive Summary</p>
+          <p class="report-item-desc">Two to three sentences summarizing overall risk posture and the most critical issue found.</p>
+        </div>
+
+        <div class="report-item">
+          <p class="report-item-name">Compliance Score</p>
+          <p class="report-item-desc">A score from 0 to 100. Scoring starts at 100 and deducts points by severity: 15 to 20 points per Critical finding, 8 to 12 per High, 3 to 6 per Medium, 1 to 2 per Low.</p>
+        </div>
+
+        <div class="report-item">
+          <p class="report-item-name">Findings</p>
+          <p class="report-item-desc">Each finding includes: severity level (Critical, High, Medium, Low), the compliance control it maps to, the exact config line as evidence, a one-sentence risk explanation, and copy-paste CLI remediation commands.</p>
+        </div>
+
+        <div class="report-item">
+          <p class="report-item-name">Passed Controls</p>
+          <p class="report-item-desc">A list of things the configuration does correctly. Useful for demonstrating due diligence.</p>
+        </div>
+
+        <div class="report-item">
+          <p class="report-item-name">Summary Table</p>
+          <p class="report-item-desc">A count of findings by severity level.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 5: Plans and Limits ── -->
+  <section class="docs-section" id="plans" aria-label="Plans and limits">
+    <div class="wrap">
+      <span class="section-eyebrow reveal">Plans and limits</span>
+      <h2 class="section-title reveal reveal-d1">Simple pricing. No surprises.</h2>
+      <div class="plans-grid">
+
+        <div class="plan-card plan-featured reveal reveal-d1">
+          <p class="plan-tier">Pro</p>
+          <div class="plan-price">
+            <span class="dollar">$9</span>
+            <span class="period">/ month</span>
+          </div>
+          <hr class="plan-divider" />
+          <ul class="plan-features">
+            <li>30 audits per month</li>
+            <li>All 9 vendors</li>
+            <li>All 4 frameworks</li>
+            <li>PDF export</li>
+            <li>Resets automatically each billing period</li>
+          </ul>
+        </div>
+
+        <div class="plan-card reveal reveal-d2">
+          <p class="plan-tier">Team</p>
+          <div class="plan-price">
+            <span class="dollar">$29</span>
+            <span class="period">/ month</span>
+          </div>
+          <hr class="plan-divider" />
+          <ul class="plan-features">
+            <li>Unlimited audits</li>
+            <li>All 9 vendors</li>
+            <li>All 4 frameworks</li>
+            <li>PDF export</li>
+            <li>Domain-based access — everyone at your company domain gets access automatically when one person subscribes. No seat management required.</li>
+          </ul>
+        </div>
+
+      </div>
+      <p class="plans-note reveal">7-day money-back guarantee on all plans. Questions? Email <a href="mailto:support@firewalliq.io">support@firewalliq.io</a></p>
+    </div>
+  </section>
+
+  <!-- ── Section 6: FAQ ── -->
+  <section class="docs-section" id="faq" aria-label="Frequently asked questions">
+    <div class="wrap">
+      <span class="section-eyebrow reveal">Frequently asked questions</span>
+      <h2 class="section-title reveal reveal-d1">Common questions</h2>
+      <div class="faq-list reveal">
+
+        <details class="faq-item">
+          <summary>What config format does FirewallIQ accept?</summary>
+          <div class="faq-answer">Plain text CLI output pasted directly from your device. For most platforms this means copying the output of <code>show running-config</code> or equivalent. FirewallIQ does not require any special export format.</div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Is my configuration stored anywhere?</summary>
+          <div class="faq-answer">No. Your config is processed in memory by a serverless function and discarded when the audit completes. Nothing is written to a database, file, or log. See our <a href="/security">security page</a> for a full explanation.</div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Can I run the same config against multiple frameworks?</summary>
+          <div class="faq-answer">Yes. Paste once, run multiple times with different frameworks selected. Each run counts as one audit against your monthly limit.</div>
+        </details>
+
+        <details class="faq-item">
+          <summary>What does the compliance score mean?</summary>
+          <div class="faq-answer">It is a relative indicator of hardening posture, not a certification. A score of 100 means no findings were detected for the selected framework. Use it to track improvement over time, not as a pass/fail certification.</div>
+        </details>
+
+        <details class="faq-item">
+          <summary>How do Team plan domains work?</summary>
+          <div class="faq-answer">When you purchase a Team plan, the domain of your email address is registered. Anyone who creates a FirewallIQ account using the same domain gets unlimited audit access automatically. No invites or seat assignments required.</div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Can I export my report?</summary>
+          <div class="faq-answer">Yes. Every audit includes a PDF export button that generates a branded report with all findings, remediation steps, and the compliance score.</div>
+        </details>
+
+        <details class="faq-item">
+          <summary>What if I find a bug or my audit fails?</summary>
+          <div class="faq-answer">Email <a href="mailto:support@firewalliq.io">support@firewalliq.io</a> with your vendor and framework selection. Do not include your actual configuration in the support email.</div>
+        </details>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="footer-full">
+    <div class="wrap">
+      <div class="footer-grid">
+
+        <div class="footer-brand-col">
+          <a href="/" style="text-decoration:none;color:inherit;">
+            <span class="wordmark">Firewall<span style="color:var(--accent);">IQ</span></span>
+          </a>
+          <p class="footer-tagline">AI-powered firewall compliance auditing for network engineers and MSPs. Scored reports in under 60 seconds.</p>
+          <span class="footer-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Zero config storage — ever
+          </span>
+        </div>
+
+        <div>
+          <span class="footer-col-title">Product</span>
+          <ul class="footer-links">
+            <li><a href="/sample">Sample Report</a></li>
+            <li><a href="/#pricing">Pricing</a></li>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/docs">Docs</a></li>
+            <li><a href="/security">Security</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <span class="footer-col-title">Legal</span>
+          <ul class="footer-links">
+            <li><a href="/terms">Terms of Service</a></li>
+            <li><a href="/privacy">Privacy Policy</a></li>
+          </ul>
+          <span class="footer-col-title" style="margin-top:24px;display:block;">Support</span>
+          <ul class="footer-links">
+            <li><a href="mailto:support@firewalliq.io">support@firewalliq.io</a></li>
+          </ul>
+        </div>
+
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025–2026 Treesh Tech LLC · All rights reserved</span>
+        <span style="color:var(--pass);">● Configs are never stored or logged</span>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  // ── Scroll reveal ──
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!els.length) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+
+  // ── Supabase auth UI ──
+  function updateAuthUI(session) {
+    var loginBtn  = document.getElementById("login-btn");
+    var logoutBtn = document.getElementById("logout-btn");
+    var userEmail = document.getElementById("user-email");
+    if (session && session.user) {
+      if (loginBtn)  loginBtn.style.display  = "none";
+      if (logoutBtn) logoutBtn.style.display = "block";
+      if (userEmail) userEmail.textContent   = session.user.email;
+    } else {
+      if (loginBtn)  loginBtn.style.display  = "block";
+      if (logoutBtn) logoutBtn.style.display = "none";
+      if (userEmail) userEmail.textContent   = "";
+    }
+  }
+
+  _supabase.auth.onAuthStateChange(function(_event, session) { updateAuthUI(session); });
+  _supabase.auth.getSession().then(function(result) { updateAuthUI(result.data && result.data.session || null); });
+
+  document.getElementById("login-btn").addEventListener("click", function() {
+    window.location.href = "/#audit";
+  });
+  document.getElementById("logout-btn").addEventListener("click", async function() {
+    await _supabase.auth.signOut();
+    updateAuthUI(null);
+  });
+</script>
+
+</body>
+</html>
