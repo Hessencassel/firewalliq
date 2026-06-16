@@ -1535,6 +1535,30 @@ access-list OUTSIDE_IN extended permit ip any any
     </div>
   </main>
 
+  <!-- ── Zero Storage ── -->
+  <section class="how-section" aria-label="Zero storage architecture">
+    <div class="wrap">
+      <span class="section-eyebrow reveal">Security by design</span>
+      <h2 class="section-title reveal reveal-d1">Your config is processed in memory.<br>Nothing is ever stored.</h2>
+      <p class="reveal reveal-d2" style="font-size:16px;color:var(--text-dim);line-height:1.7;margin:0 0 52px;max-width:68ch;">When you paste a config and click Run Audit, it travels over HTTPS directly to a serverless function. That function passes it to the audit engine, streams the findings back to your screen, and terminates. No database writes. No file storage. No logging of your config. When the process ends, the data is gone.</p>
+      <div class="features-grid" style="margin-bottom:40px;">
+        <div class="feat-card reveal reveal-d1">
+          <p class="feat-title">In transit only</p>
+          <p class="feat-body">Your config exists only while the audit is running. The moment the serverless function completes, it is gone from memory entirely. There is no background job, no queue, and no cache holding it.</p>
+        </div>
+        <div class="feat-card reveal reveal-d2">
+          <p class="feat-title">No database calls</p>
+          <p class="feat-body">There is no code path that writes your configuration to any database, cache, or storage layer. The function receives it, passes it to the audit engine, and discards it. You can read the source on GitHub.</p>
+        </div>
+        <div class="feat-card reveal reveal-d3">
+          <p class="feat-title">HTTPS end to end</p>
+          <p class="feat-body">Every byte travels over TLS from your browser to the serverless function. Your config is never transmitted unencrypted at any point in the pipeline.</p>
+        </div>
+      </div>
+      <p class="reveal" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);margin:0;letter-spacing:0.02em;">Skeptical? The architecture is simple enough to verify. No config has ever touched a database in FirewallIQ's codebase.</p>
+    </div>
+  </section>
+
   <!-- ── Pricing ── -->
   <section class="pricing" id="pricing" aria-label="Pricing">
     <div class="wrap">
@@ -1634,6 +1658,7 @@ access-list OUTSIDE_IN extended permit ip any any
             <li><a href="/sample">Sample Report</a></li>
             <li><a href="#pricing">Pricing</a></li>
             <li><a href="#features">Features</a></li>
+            <li><a href="/security">Security</a></li>
           </ul>
         </div>
 
