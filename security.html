@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Security &amp; Privacy — FirewallIQ</title>
+<meta name="description" content="How FirewallIQ handles your data. Your firewall configs are never stored — processed in memory and discarded when the audit ends." />
+<meta property="og:title" content="Security &amp; Privacy — FirewallIQ" />
+<meta property="og:description" content="How FirewallIQ handles your data. Your firewall configs are never stored — processed in memory and discarded when the audit ends." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://firewalliq.io/security" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Security &amp; Privacy — FirewallIQ" />
+<meta name="twitter:description" content="How FirewallIQ handles your data. Your firewall configs are never stored — processed in memory and discarded when the audit ends." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='5' fill='%230a101c'/><path d='M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z' stroke='%2338bdf8' stroke-width='1.4' stroke-linejoin='round' fill='none'/><path d='M8.7 12.2l2.2 2.2 4.2-4.6' stroke='%2338bdf8' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a101c;
+    --surface: #111a2c;
+    --surface-2: #0e1626;
+    --border: #1f2c44;
+    --border-soft: #18233a;
+    --text: #e8eef8;
+    --text-dim: #93a1bd;
+    --text-faint: #64759a;
+    --accent: #38bdf8;
+    --accent-deep: #0ea5e9;
+    --crit: #f0476a;
+    --high: #fb8c42;
+    --med: #f2c94c;
+    --low: #5b9bd5;
+    --pass: #2bd4a0;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background:
+      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px),
+      radial-gradient(1200px 600px at 50% -8%, rgba(56, 189, 248, 0.10), transparent 68%),
+      var(--bg);
+    background-size: 72px 72px, 72px 72px, 100% 100%;
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Top Nav ── */
+  .topnav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(10, 16, 28, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    height: 62px;
+    gap: 24px;
+  }
+  .nav-text-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-left: auto;
+  }
+  .nav-text-links a {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color .15s;
+  }
+  .nav-text-links a:hover { color: var(--text); }
+  .nav-cta {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #04121e;
+    background: var(--accent);
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: background .15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-cta:hover { background: #5cc9fb; }
+
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .mark {
+    width: 34px; height: 34px; flex: none;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: linear-gradient(180deg, #14213a, #0d1424);
+    display: grid; place-items: center;
+    position: relative; overflow: hidden;
+  }
+  .mark svg { width: 20px; height: 20px; display: block; }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; }
+  .wordmark span { color: var(--accent); }
+
+  /* ── Main content ── */
+  main { padding: 72px 0 100px; }
+
+  .doc-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    display: block;
+    margin: 0 0 18px;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(32px, 5vw, 48px);
+    letter-spacing: -0.03em;
+    line-height: 1.07;
+    color: var(--text);
+    margin: 0 0 20px;
+  }
+
+  .doc-sub {
+    font-size: 18px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin: 0 0 64px;
+    max-width: 52ch;
+  }
+
+  .doc-section {
+    border-top: 1px solid var(--border-soft);
+    padding: 48px 0 0;
+    margin-top: 48px;
+  }
+  .doc-section:first-of-type {
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(20px, 3vw, 26px);
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin: 0 0 20px;
+  }
+
+  .doc-body {
+    font-size: 16px;
+    color: var(--text-dim);
+    line-height: 1.75;
+    max-width: 68ch;
+  }
+
+  .doc-body p { margin: 0 0 18px; }
+  .doc-body p:last-child { margin-bottom: 0; }
+
+  .contact-line {
+    margin-top: 64px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border-soft);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-faint);
+    letter-spacing: 0.02em;
+  }
+  .contact-line a { color: var(--accent); text-decoration: none; text-underline-offset: 3px; }
+  .contact-line a:hover { text-decoration: underline; }
+
+  /* ── Multi-column Footer ── */
+  .footer-full { border-top: 1px solid var(--border-soft); padding: 48px 0 24px; }
+  .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .footer-brand-col .wordmark { font-size: 17px; margin-bottom: 12px; display: block; }
+  .footer-tagline { font-size: 13px; color: var(--text-dim); font-family: var(--sans); line-height: 1.6; margin: 0 0 18px; max-width: 30ch; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(43,212,160,0.07); border: 1px solid rgba(43,212,160,0.2);
+    border-radius: 8px; padding: 6px 12px; font-family: var(--mono);
+    font-size: 11px; color: var(--pass); letter-spacing: 0.04em;
+  }
+  .footer-col-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 16px; display: block; }
+  .footer-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .footer-links a { color: var(--text-dim); text-decoration: none; font-size: 13px; font-family: var(--sans); transition: color .15s; }
+  .footer-links a:hover { color: var(--text); }
+  .footer-bottom { border-top: 1px solid var(--border-soft); padding-top: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+
+  @media (max-width: 860px) {
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .footer-brand-col { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .footer-grid { grid-template-columns: 1fr; }
+    .nav-text-links { display: none; }
+    main { padding: 48px 0 72px; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const SUPABASE_URL      = "https://tqnbpkkzxrnnenpvdisy.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_ZyWkzDbxYe94AeqSEQJ1bw_PuIbueQO";
+  const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+</head>
+<body>
+
+  <!-- ── Sticky Top Nav ── -->
+  <nav class="topnav" aria-label="Site navigation">
+    <div class="wrap">
+      <div class="nav-inner">
+        <a href="/" class="brand" style="text-decoration:none;color:inherit;">
+          <div class="mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z" stroke="#38bdf8" stroke-width="1.4" stroke-linejoin="round"/>
+              <path d="M8.7 12.2l2.2 2.2 4.2-4.6" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="wordmark">Firewall<span>IQ</span></div>
+        </a>
+        <div class="identity-bar" id="identity-bar" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+          <span id="user-email" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);"></span>
+          <button id="login-btn" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
+          <button id="logout-btn" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
+        </div>
+        <div class="nav-text-links">
+          <a href="/#features">Features</a>
+          <a href="/#pricing">Pricing</a>
+          <a href="/security" style="color:var(--text);">Security</a>
+        </div>
+        <a href="/#audit" class="nav-cta">Start auditing</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="wrap">
+      <span class="doc-eyebrow">Security &amp; Privacy</span>
+      <h1>How FirewallIQ handles your data</h1>
+      <p class="doc-sub">The short version: we don't store it. Here is exactly why that is true.</p>
+
+      <div class="doc-section">
+        <h2>The audit pipeline</h2>
+        <div class="doc-body">
+          <p>The user pastes a config and clicks Run Audit. The browser sends it over HTTPS to a Netlify serverless function. That function receives the config in memory and passes it directly to the Anthropic API as part of the audit prompt. The API streams findings back through the function to the user's browser. The function then terminates and its memory is cleared.</p>
+          <p>No step in this pipeline involves writing anything to disk, a database, a cache, or a log file.</p>
+        </div>
+      </div>
+
+      <div class="doc-section">
+        <h2>What we do store</h2>
+        <div class="doc-body">
+          <p>FirewallIQ stores three things and nothing else. Your account email address. Your plan type (Pro or Team). Your monthly audit count.</p>
+          <p>That is the complete list. We do not store config text, audit results, IP addresses mapped to configs, or any record of what you audited.</p>
+        </div>
+      </div>
+
+      <div class="doc-section">
+        <h2>Why serverless makes this verifiable</h2>
+        <div class="doc-body">
+          <p>FirewallIQ's audit engine runs as a Netlify serverless function. Serverless functions have no persistent memory between invocations. Every time the function runs, it starts from a clean slate. Even if we wanted to retain your config, the function would need to explicitly write it to an external service. It does not.</p>
+          <p>The relevant code is in <code style="font-family:var(--mono);font-size:14px;color:var(--accent);">audit.mjs</code> in the public GitHub repository. The absence of any storage call is something you can verify yourself.</p>
+        </div>
+      </div>
+
+      <div class="doc-section">
+        <h2>Your data rights</h2>
+        <div class="doc-body">
+          <p>You can delete your account at any time by emailing <a href="mailto:support@firewalliq.io" style="color:var(--accent);text-underline-offset:3px;">support@firewalliq.io</a>. Deletion removes your email address and plan record from our database. There is no config history to delete because none was ever created.</p>
+          <p>If you have questions about what data we hold, email us and we will respond within 48 hours.</p>
+        </div>
+      </div>
+
+      <p class="contact-line">Security questions? Email <a href="mailto:support@firewalliq.io">support@firewalliq.io</a></p>
+    </div>
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer class="footer-full">
+    <div class="wrap">
+      <div class="footer-grid">
+
+        <div class="footer-brand-col">
+          <a href="/" style="text-decoration:none;color:inherit;">
+            <span class="wordmark">Firewall<span style="color:var(--accent);">IQ</span></span>
+          </a>
+          <p class="footer-tagline">AI-powered firewall compliance auditing for network engineers and MSPs. Scored reports in under 60 seconds.</p>
+          <span class="footer-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Zero config storage — ever
+          </span>
+        </div>
+
+        <div>
+          <span class="footer-col-title">Product</span>
+          <ul class="footer-links">
+            <li><a href="/sample">Sample Report</a></li>
+            <li><a href="/#pricing">Pricing</a></li>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/security">Security</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <span class="footer-col-title">Legal</span>
+          <ul class="footer-links">
+            <li><a href="/terms">Terms of Service</a></li>
+            <li><a href="/privacy">Privacy Policy</a></li>
+          </ul>
+          <span class="footer-col-title" style="margin-top:24px;display:block;">Support</span>
+          <ul class="footer-links">
+            <li><a href="mailto:support@firewalliq.io">support@firewalliq.io</a></li>
+          </ul>
+        </div>
+
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025–2026 Treesh Tech LLC · All rights reserved</span>
+        <span style="color:var(--pass);">● Configs are never stored or logged</span>
+      </div>
+    </div>
+  </footer>
+
+<script>
+function updateAuthUI(session) {
+  const loginBtn  = document.getElementById("login-btn");
+  const logoutBtn = document.getElementById("logout-btn");
+  const userEmail = document.getElementById("user-email");
+  if (session?.user) {
+    if (loginBtn)  loginBtn.style.display  = "none";
+    if (logoutBtn) logoutBtn.style.display = "block";
+    if (userEmail) userEmail.textContent   = session.user.email;
+  } else {
+    if (loginBtn)  loginBtn.style.display  = "block";
+    if (logoutBtn) logoutBtn.style.display = "none";
+    if (userEmail) userEmail.textContent   = "";
+  }
+}
+
+_supabase.auth.onAuthStateChange((_event, session) => updateAuthUI(session));
+_supabase.auth.getSession().then(({ data }) => updateAuthUI(data?.session || null));
+
+document.getElementById("login-btn").addEventListener("click", () => {
+  window.location.href = "/#audit";
+});
+document.getElementById("logout-btn").addEventListener("click", async () => {
+  await _supabase.auth.signOut();
+  updateAuthUI(null);
+});
+</script>
+
+</body>
+</html>
