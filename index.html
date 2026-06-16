@@ -1163,17 +1163,12 @@
     .how-section, .cta-banner, .social-section { padding: 56px 0; }
   }
 </style>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.on("init", function(user) {
-      if (!user) {
-        window.netlifyIdentity.on("login", function() {
-          document.location.href = "/";
-        });
-      }
-    });
-  }
+  // ── Supabase client — replace with your project values ──
+  const SUPABASE_URL      = "https://YOUR_PROJECT_ID.supabase.co";
+  const SUPABASE_ANON_KEY = "YOUR_ANON_PUBLIC_KEY";
+  const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 </script>
 </head>
 <body>
@@ -1194,7 +1189,7 @@
         <div class="identity-bar" id="identity-bar" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
           <span id="user-email" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);"></span>
           <button id="login-btn" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
-          <button id="logout-btn" onclick="netlifyIdentity.logout()" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
+          <button id="logout-btn" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
         </div>
         <div class="nav-text-links">
           <a href="#features">Features</a>
@@ -1670,12 +1665,6 @@ access-list OUTSIDE_IN extended permit ip any any
   </a>
 
 <script>
-  if (window.netlifyIdentity) {
-    netlifyIdentity.init({
-      APIUrl: "https://firewalliq.netlify.app/.netlify/identity"
-    });
-  }
-
   const $ = (id) => document.getElementById(id);
   const SEV = {
     critical: { c: "var(--crit)", label: "Critical" },
@@ -1788,15 +1777,15 @@ access-list OUTSIDE_IN extended permit ip any any
 
   // Run the audit (streams from the function, parses JSON on completion)
   runBtn.addEventListener("click", async () => {
-    const user = window.netlifyIdentity ? netlifyIdentity.currentUser() : null;
-    if (!user) {
+    const token = await getToken();
+    if (!token) {
+      openAuthModal("signin");
       showError("Please log in to run an audit.");
       runBtn.disabled = false;
       setState(null);
       stopScan();
       return;
     }
-    const token = await user.jwt();
     clearError();
     setState("scan");
     startScan();
@@ -2090,32 +2079,109 @@ access-list OUTSIDE_IN extended permit ip any any
     setInterval(run, CYCLE);
   })();
 
-// Netlify Identity event handlers
-netlifyIdentity.on("init", user => updateAuthUI(user));
-netlifyIdentity.on("login", user => { updateAuthUI(user); netlifyIdentity.close(); });
-netlifyIdentity.on("logout", () => updateAuthUI(null));
+// ── Supabase auth ─────────────────────────────────────────────────────────
+let _authSession = null;
 
-function updateAuthUI(user) {
-  const loginBtn = document.getElementById("login-btn");
+async function getToken() {
+  const { data } = await _supabase.auth.getSession();
+  return data?.session?.access_token || null;
+}
+
+function updateAuthUI(session) {
+  const loginBtn  = document.getElementById("login-btn");
   const logoutBtn = document.getElementById("logout-btn");
   const userEmail = document.getElementById("user-email");
-  if (user) {
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "block";
-    userEmail.textContent = user.email;
+  if (session?.user) {
+    if (loginBtn)  loginBtn.style.display  = "none";
+    if (logoutBtn) logoutBtn.style.display = "block";
+    if (userEmail) userEmail.textContent   = session.user.email;
+    _authSession = session;
   } else {
-    loginBtn.style.display = "block";
-    logoutBtn.style.display = "none";
-    userEmail.textContent = "";
+    if (loginBtn)  loginBtn.style.display  = "block";
+    if (logoutBtn) logoutBtn.style.display = "none";
+    if (userEmail) userEmail.textContent   = "";
+    _authSession = null;
   }
 }
 
-document.getElementById("login-btn").addEventListener(
-  "click", () => window.netlifyIdentity && netlifyIdentity.open("login")
-);
-document.getElementById("logout-btn").addEventListener(
-  "click", () => window.netlifyIdentity && netlifyIdentity.logout()
-);
+_supabase.auth.onAuthStateChange((_event, session) => updateAuthUI(session));
+_supabase.auth.getSession().then(({ data }) => updateAuthUI(data?.session || null));
+
+document.getElementById("login-btn").addEventListener("click", () => openAuthModal("signin"));
+document.getElementById("logout-btn").addEventListener("click", async () => {
+  await _supabase.auth.signOut();
+  updateAuthUI(null);
+});
+
+// ── Auth modal ─────────────────────────────────────────────────────────────
+let _authMode = "signin";
+
+function openAuthModal(mode) {
+  authTab(mode || "signin");
+  document.getElementById("auth-modal").style.display = "flex";
+  setTimeout(() => document.getElementById("auth-email").focus(), 80);
+}
+
+function closeAuthModal() {
+  document.getElementById("auth-modal").style.display = "none";
+  document.getElementById("auth-error").style.display   = "none";
+  document.getElementById("auth-success").style.display = "none";
+  document.getElementById("auth-email").value    = "";
+  document.getElementById("auth-password").value = "";
+}
+
+function authTab(mode) {
+  _authMode = mode;
+  const si = document.getElementById("tab-signin");
+  const su = document.getElementById("tab-signup");
+  const btn = document.getElementById("auth-submit");
+  const ft  = document.getElementById("auth-footer-text");
+  const on  = "2px solid var(--accent)", off = "2px solid transparent";
+  if (mode === "signin") {
+    si.style.borderBottom = on;  si.style.color = "var(--text)";
+    su.style.borderBottom = off; su.style.color = "var(--text-dim)";
+    btn.textContent = "Sign In";
+    ft.innerHTML = "Don&#39;t have an account? <a href='#' onclick=\"authTab('signup');return false;\" style='color:var(--accent);'>Create one free</a>";
+  } else {
+    su.style.borderBottom = on;  su.style.color = "var(--text)";
+    si.style.borderBottom = off; si.style.color = "var(--text-dim)";
+    btn.textContent = "Create Account";
+    ft.innerHTML = "Already have an account? <a href='#' onclick=\"authTab('signin');return false;\" style='color:var(--accent);'>Sign in</a>";
+  }
+  document.getElementById("auth-error").style.display   = "none";
+  document.getElementById("auth-success").style.display = "none";
+}
+
+function showAuthMsg(msg, isError) {
+  const err = document.getElementById("auth-error");
+  const ok  = document.getElementById("auth-success");
+  if (isError) { err.textContent = msg; err.style.display = "block"; ok.style.display  = "none"; }
+  else         { ok.textContent  = msg; ok.style.display  = "block"; err.style.display = "none"; }
+}
+
+async function authSubmit() {
+  const email    = document.getElementById("auth-email").value.trim();
+  const password = document.getElementById("auth-password").value;
+  const btn      = document.getElementById("auth-submit");
+  if (!email || !password) { showAuthMsg("Email and password are required.", true); return; }
+  btn.disabled    = true;
+  btn.textContent = _authMode === "signin" ? "Signing in…" : "Creating account…";
+  if (_authMode === "signin") {
+    const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+    if (error) { showAuthMsg(error.message || "Sign in failed. Check your email and password.", true); btn.disabled = false; btn.textContent = "Sign In"; return; }
+    updateAuthUI(data.session);
+    closeAuthModal();
+  } else {
+    const { data, error } = await _supabase.auth.signUp({ email, password });
+    if (error) { showAuthMsg(error.message || "Sign up failed. Try again.", true); btn.disabled = false; btn.textContent = "Create Account"; return; }
+    if (data.session) { updateAuthUI(data.session); closeAuthModal(); }
+    else { showAuthMsg("Account created! Check your email to confirm, then sign in.", false); btn.disabled = false; btn.textContent = "Create Account"; }
+  }
+}
+
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") closeAuthModal();
+});
 
 
   // ── Stat counter animation on scroll ──
@@ -2152,15 +2218,21 @@ document.getElementById("logout-btn").addEventListener(
 async function startCheckout(plan) {
   const btn = document.querySelector(`button[onclick="startCheckout('${plan}')"]`);
   if (btn) { btn.disabled = true; btn.textContent = "Redirecting..."; }
+  const email = _authSession?.user?.email || null;
   try {
     const res = await fetch("/.netlify/functions/checkout", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ plan, email }),
     });
     const data = await res.json();
     if (data.url) {
       window.location.href = data.url;
+    } else if (data.suggestPro) {
+      // Consumer domain tried to buy Team plan
+      const msg = (data.detail || data.error) + "\n\nWould you like to switch to the Pro plan instead?";
+      if (confirm(msg)) startCheckout("pro");
+      else if (btn) { btn.disabled = false; btn.textContent = "Get started"; }
     } else {
       alert(data.error || "Something went wrong. Please try again.");
       if (btn) { btn.disabled = false; btn.textContent = "Get started"; }
@@ -2171,5 +2243,52 @@ async function startCheckout(plan) {
   }
 }
 </script>
+
+  <!-- ── Auth Modal ── -->
+  <div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(4,12,22,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:400px;margin:16px;position:relative;box-shadow:0 24px 64px rgba(0,0,0,0.5);">
+      <button onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text-faint);font-size:20px;cursor:pointer;line-height:1;padding:4px;">✕</button>
+
+      <div style="display:flex;gap:0;margin-bottom:28px;border-bottom:1px solid var(--border);">
+        <button id="tab-signin" onclick="authTab('signin')"
+          style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--text);font-family:var(--display);font-weight:600;font-size:14px;cursor:pointer;">
+          Sign In
+        </button>
+        <button id="tab-signup" onclick="authTab('signup')"
+          style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:var(--display);font-weight:600;font-size:14px;cursor:pointer;">
+          Create Account
+        </button>
+      </div>
+
+      <div id="auth-error"   style="display:none;background:rgba(240,71,106,0.1);border:1px solid rgba(240,71,106,0.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--crit);line-height:1.5;"></div>
+      <div id="auth-success" style="display:none;background:rgba(43,212,160,0.1);border:1px solid rgba(43,212,160,0.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--pass);line-height:1.5;"></div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:block;margin-bottom:6px;">Email</label>
+          <input id="auth-email" type="email" placeholder="you@company.com"
+            onkeydown="if(event.key==='Enter')authSubmit()"
+            style="width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:block;margin-bottom:6px;">Password</label>
+          <input id="auth-password" type="password" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter')authSubmit()"
+            style="width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <button id="auth-submit" onclick="authSubmit()"
+          style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:10px;color:#04121e;font-family:var(--display);font-weight:700;font-size:15px;cursor:pointer;margin-top:4px;transition:opacity .15s;"
+          onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+          Sign In
+        </button>
+      </div>
+      <p id="auth-footer-text" style="text-align:center;font-size:12px;color:var(--text-faint);margin:18px 0 0;font-family:var(--mono);">
+        Don't have an account? <a href="#" onclick="authTab('signup');return false;" style="color:var(--accent);">Create one free</a>
+      </p>
+    </div>
+  </div>
+
 </body>
 </html>

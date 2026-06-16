@@ -1,10 +1,15 @@
 // FirewallIQ — Stripe Checkout Function
-// Creates a Stripe Checkout session and returns the URL
+// Creates a Stripe Checkout session and returns the URL.
+//
+// Team plan guard: if the customer email is a consumer domain (gmail, yahoo, etc.)
+// the Team plan is blocked. The error copy redirects them to Pro instead.
+
+import { isConsumerDomain } from "./consumer-domains.mjs";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID;
-const TEAM_PRICE_ID = process.env.STRIPE_TEAM_PRICE_ID;
-const SITE_URL = "https://firewalliq.io";
+const PRO_PRICE_ID      = process.env.STRIPE_PRO_PRICE_ID;
+const TEAM_PRICE_ID     = process.env.STRIPE_TEAM_PRICE_ID;
+const SITE_URL          = "https://firewalliq.io";
 
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
@@ -30,21 +35,30 @@ export default async (req) => {
   }
 
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
-  if (!STRIPE_SECRET_KEY) return json({ error: "Stripe not configured." }, 500);
+  if (!STRIPE_SECRET_KEY)    return json({ error: "Stripe not configured." }, 500);
 
   let body;
-  try {
-    body = await req.json();
-  } catch {
-    return json({ error: "Invalid request." }, 400);
-  }
+  try   { body = await req.json(); }
+  catch { return json({ error: "Invalid request." }, 400); }
 
-  const { plan } = body || {};
+  const { plan, email } = body || {};
   if (!plan || !["pro", "team"].includes(plan)) {
     return json({ error: "Invalid plan. Choose pro or team." }, 400);
   }
 
-  const priceId = plan === "pro" ? PRO_PRICE_ID : TEAM_PRICE_ID;
+  // ── Team plan: require a work email domain ────────────────────
+  if (plan === "team" && email) {
+    const domain = email.split("@")[1]?.toLowerCase().trim();
+    if (isConsumerDomain(domain)) {
+      return json({
+        error: "Team plans require a work or business email address.",
+        detail: `${domain} is a personal email provider. Team plans are designed for companies and MSPs — everyone at your domain gets access automatically. If you're an individual, the Pro plan ($9/month) has you covered.`,
+        suggestPro: true,
+      }, 400);
+    }
+  }
+
+  const priceId   = plan === "pro" ? PRO_PRICE_ID : TEAM_PRICE_ID;
   const planLabel = plan === "pro" ? "FirewallIQ Pro" : "FirewallIQ Team";
 
   try {
@@ -55,24 +69,24 @@ export default async (req) => {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        "mode": "subscription",
-        "line_items[0][price]": priceId,
-        "line_items[0][quantity]": "1",
-        "success_url": `${SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`,
-        "cancel_url": `${SITE_URL}/#pricing`,
-        "allow_promotion_codes": "true",
-        "billing_address_collection": "auto",
-        "metadata[plan]": plan,
-        "metadata[plan_label]": planLabel,
-        "subscription_data[metadata][plan]": plan,
-        ...(body.email ? { "customer_email": body.email } : {}),
+        "mode":                               "subscription",
+        "line_items[0][price]":               priceId,
+        "line_items[0][quantity]":            "1",
+        "success_url":                        `${SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`,
+        "cancel_url":                         `${SITE_URL}/#pricing`,
+        "allow_promotion_codes":              "true",
+        "billing_address_collection":         "auto",
+        "metadata[plan]":                     plan,
+        "metadata[plan_label]":               planLabel,
+        "subscription_data[metadata][plan]":  plan,
+        ...(email ? { "customer_email": email } : {}),
       }),
     });
 
     const session = await response.json();
 
     if (!response.ok) {
-      console.error("Stripe error:", session);
+      console.error("FIREWALLIQ: Stripe error:", session);
       return json({ error: session.error?.message || "Stripe error." }, 502);
     }
 
