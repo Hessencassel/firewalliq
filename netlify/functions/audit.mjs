@@ -36,6 +36,7 @@ const FRAMEWORKS = {
   cis:         "CIS Benchmarks (vendor-specific)",
   hipaa:       "HIPAA Security Rule (45 CFR Part 164)",
   nist_800_53: "NIST SP 800-53 Rev 5",
+  cmmc:        "CMMC 2.0 (Cybersecurity Maturity Model Certification)",
 };
 
 // --- Vendor knowledge blocks ---
@@ -174,6 +175,22 @@ Where a control cannot be confirmed from the provided config, state that explici
 - IA-2 Identification and Authentication: MFA for privileged accounts.
 - SC-8 Transmission Confidentiality: encrypt management and VPN traffic.
 Where a control cannot be confirmed from the provided config, state that explicitly.`,
+
+  cmmc: `FRAMEWORK: CMMC 2.0 (Cybersecurity Maturity Model Certification), Level 2 practices based on NIST SP 800-171. Map each finding to the relevant practice ID:
+- AC.L2-3.1.1 Limit system access to authorized users and authorized devices.
+- AC.L2-3.1.3 Control the flow of CUI in accordance with approved authorizations (boundary and segmentation controls).
+- AC.L2-3.1.20 Verify and control/limit connections to and use of external systems.
+- AU.L2-3.3.1 Create and retain system audit logs and records to enable monitoring and investigation.
+- CM.L2-3.4.6 Employ the principle of least functionality by configuring systems to provide only essential capabilities.
+- CM.L2-3.4.7 Restrict, disable, or prevent the use of nonessential programs, ports, protocols, and services.
+- IA.L2-3.5.3 Use multifactor authentication for local and network access to privileged accounts.
+- SC.L2-3.13.1 Monitor, control, and protect communications at external boundaries and key internal boundaries.
+- SC.L2-3.13.5 Implement subnetworks for publicly accessible system components that are physically or logically separated from internal networks.
+- SC.L2-3.13.6 Deny network communications traffic by default and allow by exception (default-deny posture).
+- SC.L2-3.13.8 Implement cryptographic mechanisms to prevent unauthorized disclosure of CUI during transmission.
+- SI.L2-3.14.1 Identify, report, and correct system flaws in a timely manner (evidence of patching cadence where visible).
+- SI.L2-3.14.6 Monitor organizational systems to detect attacks and indicators of potential attacks.
+Where a practice cannot be confirmed from the provided config, state that explicitly rather than assuming compliance.`,
 };
 
 function scrubSecrets(text) {
@@ -208,6 +225,7 @@ For EACH finding use this exact structure:
 
 ### [SEVERITY] Finding Title
 **Severity:** Critical | High | Medium | Low
+**Confidence:** High | Medium | Low
 **Framework Control:** [exact requirement number or control name]
 **Evidence:** \`exact config line or element that triggered this finding\`
 **Risk:** One sentence explaining the specific risk.
@@ -215,6 +233,11 @@ For EACH finding use this exact structure:
 \`\`\`
 exact CLI commands to fix the issue
 \`\`\`
+
+Confidence levels:
+- High: the evidence directly and unambiguously demonstrates the issue. The exact config line shown proves the finding with no inference required.
+- Medium: the evidence strongly suggests the issue, but some context is inferred because the full device configuration is not visible (for example, a missing logging directive that could theoretically be configured elsewhere not shown in this excerpt).
+- Low: the finding is based on the absence of evidence rather than a direct contradiction, or the provided config is a partial excerpt that limits visibility into the full security posture.
 
 ## Passed Controls
 List 3-6 things the config does correctly, with brief explanation.
@@ -232,6 +255,7 @@ Rules:
 - Never invent config lines. Only cite what is literally present in the config.
 - If you cannot confirm a control, say "Cannot confirm from provided config."
 - Remediation commands must be real, working CLI for the specified platform.
+- Be honest about confidence. If the provided config appears to be a partial excerpt or you cannot see related context (other interfaces, other policy lines, other zones), reflect that with a Medium or Low confidence rating rather than presenting an inferred finding as certain.
 - Do not add commentary outside the defined structure.`;
 }
 

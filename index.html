@@ -644,6 +644,15 @@
     text-transform: uppercase; letter-spacing: 0.1em;
     padding: 3px 8px; border-radius: 5px;
   }
+  .conf {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 3px 8px; border-radius: 5px;
+    color: var(--text-dim);
+    background: rgba(147, 161, 189, 0.10);
+    border: 1px solid rgba(147, 161, 189, 0.18);
+    white-space: nowrap;
+  }
   .f-title { font-family: var(--display); font-weight: 600; font-size: 16px; flex: 1; min-width: 200px; }
   .ctrl {
     font-family: var(--mono); font-size: 11.5px; color: var(--text-faint);
@@ -954,6 +963,7 @@
     pre.code { background: #f6f6f6; color: #111; border-color: #ddd; }
     .copy { display: none; }
     .summary-body p, .ctrl, .tally, .kv .k { color: #444; }
+    .conf { color: #555; background: #f0f0f0; border-color: #ccc; }
 
     /* Branded PDF header */
     .report::before {
@@ -1469,6 +1479,7 @@
               <option value="cis">CIS Benchmarks</option>
               <option value="hipaa">HIPAA Security Rule</option>
               <option value="nist_800_53">NIST 800-53 Rev 5</option>
+              <option value="cmmc">CMMC 2.0</option>
             </select>
           </div>
           <div class="detect" id="detect" hidden>detected <b id="detect-name"></b></div>
@@ -1700,6 +1711,11 @@ access-list OUTSIDE_IN extended permit ip any any
     low:      { c: "var(--low)",  label: "Low" },
     pass:     { c: "var(--pass)", label: "Pass" },
   };
+  const CONF = {
+    high:   { label: "High" },
+    medium: { label: "Medium" },
+    low:    { label: "Low" },
+  };
   const ORDER = ["critical", "high", "medium", "low", "pass"];
 
   const config = $("config"), vendorSel = $("vendor"), runBtn = $("run"), meta = $("meta");
@@ -1910,6 +1926,7 @@ access-list OUTSIDE_IN extended permit ip any any
     // findings
     $("findings").innerHTML = findings.map((f, idx) => {
       const sev = SEV[f.severity] || SEV.low;
+      const conf = CONF[(f.confidence || "").toLowerCase().trim()];
       const rem = (f.remediation || "").trim();
       const remBlock = rem
         ? '<div class="remwrap"><div class="kv"><div class="k">Remediation</div>' +
@@ -1920,6 +1937,7 @@ access-list OUTSIDE_IN extended permit ip any any
         '<div class="finding-top">' +
           '<span class="sev" style="color:' + sev.c + '">' +
           sev.label + '</span>' +
+          (conf ? '<span class="conf">' + conf.label + ' Conf</span>' : '') +
           '<span class="f-title">' + esc(f.title || "Finding") + '</span>' +
           (f.control ? '<span class="ctrl">' + esc(f.control) + '</span>' : '') +
         '</div>' +
