@@ -1198,6 +1198,7 @@
         </a>
         <div class="identity-bar" id="identity-bar" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
           <span id="user-email" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);"></span>
+          <button id="history-nav-btn" onclick="openHistoryFromNav()" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">History</button>
           <button id="login-btn" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
           <button id="logout-btn" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
         </div>
@@ -1541,6 +1542,7 @@ access-list OUTSIDE_IN extended permit ip any any
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0L5 7m3 3l3-3M3 13h10" stroke="#04121e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Export report
           </button>
+          <button class="btn ghost" id="save-history-btn" type="button" disabled>Save to History</button>
           <button class="btn ghost" id="again" type="button">New audit</button>
         </div>
       </section>
@@ -1704,6 +1706,7 @@ access-list OUTSIDE_IN extended permit ip any any
 
 <script>
   const $ = (id) => document.getElementById(id);
+  let _lastRawReport = null;
   const SEV = {
     critical: { c: "var(--crit)", label: "Critical" },
     high:     { c: "var(--high)", label: "High" },
@@ -1868,6 +1871,8 @@ access-list OUTSIDE_IN extended permit ip any any
         throw new Error("The audit engine returned a response that couldn't be read. Try running it again.");
       }
       render(report);
+      _lastRawReport = raw;
+      $("save-history-btn").disabled = false;
       stopScan();
       setState("report");
       $("report").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1983,6 +1988,8 @@ access-list OUTSIDE_IN extended permit ip any any
     return "firewall";
   }
 
+  $("save-history-btn").addEventListener("click", saveAuditToHistory);
+
   $("export").addEventListener("click", () => {
     const hostname = extractHostname();
     const date = new Date().toISOString().slice(0, 10);
@@ -1996,6 +2003,9 @@ access-list OUTSIDE_IN extended permit ip any any
   });
 
   $("again").addEventListener("click", () => {
+    _lastRawReport = null;
+    const sh = $("save-history-btn");
+    if (sh) { sh.disabled = true; sh.textContent = "Save to History"; }
     setState(null);
     clearError();
     config.value = "";
@@ -2225,7 +2235,7 @@ async function authSubmit() {
 }
 
 document.addEventListener("keydown", function(e) {
-  if (e.key === "Escape") closeAuthModal();
+  if (e.key === "Escape") { closeAuthModal(); closeHistoryModal(); }
 });
 
 
@@ -2287,7 +2297,164 @@ async function startCheckout(plan) {
     if (btn) { btn.disabled = false; btn.textContent = "Get started"; }
   }
 }
+
+// ── Audit History ─────────────────────────────────────────────────────────────
+
+const VENDOR_LABELS = {
+  cisco_asa:   "Cisco ASA / FTD",
+  fortigate:   "FortiGate",
+  palo_alto:   "Palo Alto",
+  checkpoint:  "Check Point",
+  sonicwall:   "SonicWall",
+  sophos:      "Sophos",
+  watchguard:  "WatchGuard",
+  juniper_srx: "Juniper SRX",
+  pfsense:     "pfSense / OPNsense",
+};
+
+const FRAMEWORK_LABELS = {
+  pci_dss_4:   "PCI DSS v4.0",
+  cis:         "CIS Benchmarks",
+  hipaa:       "HIPAA",
+  nist_800_53: "NIST 800-53",
+  cmmc:        "CMMC 2.0",
+};
+
+async function saveAuditToHistory() {
+  if (!_lastRawReport) return;
+
+  const scoreMatch = _lastRawReport.match(/\*\*Score:\s*(\d+)\s*\/\s*100\*\*/);
+  const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+
+  const findingRe = /^### \[(Critical|High|Medium|Low)\]\s+(.+?)$/gm;
+  const findingTitles = [];
+  const counts = { Critical: 0, High: 0, Medium: 0, Low: 0 };
+  let m;
+  while ((m = findingRe.exec(_lastRawReport)) !== null) {
+    counts[m[1]]++;
+    findingTitles.push(m[2].trim());
+  }
+
+  const token = await getToken();
+  if (!token) { openAuthModal("signin"); return; }
+
+  const btn = $("save-history-btn");
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+
+  try {
+    const res = await fetch("/.netlify/functions/save-audit", {
+      method: "POST",
+      headers: { "content-type": "application/json", "authorization": `Bearer ${token}` },
+      body: JSON.stringify({
+        vendor:        vendorSel.value,
+        framework:     $("framework").value,
+        score,
+        criticalCount: counts.Critical,
+        highCount:     counts.High,
+        mediumCount:   counts.Medium,
+        lowCount:      counts.Low,
+        findingTitles,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (data.success) {
+      btn.textContent = "✓ Saved";
+      setTimeout(() => { btn.textContent = "Save to History"; btn.disabled = false; }, 2200);
+    } else {
+      btn.textContent = "Save failed";
+      setTimeout(() => { btn.textContent = "Save to History"; btn.disabled = false; }, 2200);
+    }
+  } catch {
+    btn.textContent = "Save failed";
+    setTimeout(() => { btn.textContent = "Save to History"; btn.disabled = false; }, 2200);
+  }
+}
+
+async function openHistoryFromNav() {
+  const token = await getToken();
+  if (!token) { openAuthModal("signin"); return; }
+  document.getElementById("history-modal").style.display = "flex";
+  document.getElementById("history-list").innerHTML =
+    '<p style="font-family:var(--mono);font-size:12px;color:var(--text-faint);text-align:center;padding:32px 0;">Loading…</p>';
+  try {
+    const res = await fetch("/.netlify/functions/audit-history", {
+      headers: { "authorization": `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    renderHistoryRows(data.history || []);
+  } catch {
+    document.getElementById("history-list").innerHTML =
+      '<p style="font-family:var(--mono);font-size:12px;color:var(--crit);text-align:center;padding:32px 0;">Could not load history.</p>';
+  }
+}
+
+function closeHistoryModal() {
+  document.getElementById("history-modal").style.display = "none";
+}
+
+function toggleHistoryFindings(id) {
+  const list = document.getElementById(id);
+  const btn  = document.getElementById("btn-" + id);
+  if (!list || !btn) return;
+  const open = list.style.display !== "none";
+  list.style.display = open ? "none" : "block";
+  btn.textContent    = open ? "▸ View findings" : "▾ Hide findings";
+}
+
+function renderHistoryRows(rows) {
+  const container = document.getElementById("history-list");
+  if (!rows.length) {
+    container.innerHTML =
+      '<p style="font-family:var(--sans);font-size:14px;color:var(--text-dim);text-align:center;padding:40px 0;line-height:1.7;">' +
+      'No saved audits yet.<br>Run an audit and click <strong style="color:var(--text);">Save to History</strong> to start tracking your trends.</p>';
+    return;
+  }
+  container.innerHTML = rows.map((row, idx) => {
+    const date      = new Date(row.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const vendor    = VENDOR_LABELS[row.vendor]       || row.vendor;
+    const framework = FRAMEWORK_LABELS[row.framework] || row.framework;
+    const sc        = scoreColor(row.score);
+    const fid       = "hf-" + idx;
+    const titles    = Array.isArray(row.finding_titles) ? row.finding_titles : [];
+    return (
+      '<div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:var(--surface-2);">' +
+        '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:10px;">' +
+          '<span style="font-family:var(--mono);font-size:11px;color:var(--text-faint);">' + esc(date) + '</span>' +
+          '<span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);padding:2px 7px;border:1px solid var(--border-soft);border-radius:4px;">' + esc(vendor) + '</span>' +
+          '<span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);padding:2px 7px;border:1px solid var(--border-soft);border-radius:4px;">' + esc(framework) + '</span>' +
+          '<span style="margin-left:auto;font-family:var(--display);font-weight:700;font-size:24px;line-height:1;color:' + sc + ';">' + row.score + '</span>' +
+          '<span style="font-family:var(--mono);font-size:10px;color:var(--text-faint);margin-left:-4px;">/100</span>' +
+        '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;' + (titles.length ? 'margin-bottom:10px;' : '') + '">' +
+          '<span style="font-family:var(--mono);font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px;color:var(--crit);background:rgba(240,71,106,0.12);">C: ' + (row.critical_count || 0) + '</span>' +
+          '<span style="font-family:var(--mono);font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px;color:var(--high);background:rgba(251,140,66,0.12);">H: ' + (row.high_count || 0) + '</span>' +
+          '<span style="font-family:var(--mono);font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px;color:var(--med);background:rgba(242,201,76,0.12);">M: ' + (row.medium_count || 0) + '</span>' +
+          '<span style="font-family:var(--mono);font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px;color:var(--low);background:rgba(91,155,213,0.12);">L: ' + (row.low_count || 0) + '</span>' +
+        '</div>' +
+        (titles.length
+          ? '<button id="btn-' + fid + '" onclick="toggleHistoryFindings(\'' + fid + '\')" style="background:none;border:none;font-family:var(--mono);font-size:11.5px;color:var(--accent);cursor:pointer;padding:0;">▸ View findings (' + titles.length + ')</button>' +
+            '<ul id="' + fid + '" style="display:none;margin:8px 0 0;padding-left:20px;">' +
+              titles.map(t => '<li style="font-size:13px;color:var(--text-dim);margin-bottom:4px;line-height:1.5;">' + esc(t) + '</li>').join('') +
+            '</ul>'
+          : '') +
+      '</div>'
+    );
+  }).join("");
+}
 </script>
+
+  <!-- ── History Modal ── -->
+  <div id="history-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(4,12,22,0.88);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px 16px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:680px;max-height:calc(100vh - 40px);display:flex;flex-direction:column;position:relative;box-shadow:0 24px 64px rgba(0,0,0,0.5);">
+      <button onclick="closeHistoryModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text-faint);font-size:20px;cursor:pointer;line-height:1;padding:4px;z-index:1;">✕</button>
+      <div style="padding:24px 28px 16px;border-bottom:1px solid var(--border-soft);flex-shrink:0;">
+        <h3 style="font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);margin:0;">Audit History</h3>
+        <p style="font-family:var(--mono);font-size:11px;color:var(--text-faint);margin:6px 0 0;letter-spacing:0.03em;">Most recent 50 audits · Scores &amp; finding titles only · Raw configs never stored</p>
+      </div>
+      <div id="history-list" style="overflow-y:auto;flex:1;padding:16px 28px 24px;"></div>
+    </div>
+  </div>
 
   <!-- ── Auth Modal ── -->
   <div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(4,12,22,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
