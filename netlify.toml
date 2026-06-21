@@ -17,6 +17,8 @@
 #   Stripe: checkout is server-side only (function returns a URL, browser
 #     navigates via window.location.href -- navigation is not covered by CSP).
 #     No Stripe.js is loaded client-side so no stripe.com domains are needed.
+#   Turnstile: challenges.cloudflare.com appears in both script-src (the loader)
+#     and frame-src (the challenge iframe Turnstile renders client-side).
 
 [[headers]]
   for = "/*"
@@ -26,7 +28,7 @@
     X-Content-Type-Options     = "nosniff"
     Referrer-Policy            = "strict-origin-when-cross-origin"
     Permissions-Policy         = "camera=(), microphone=(), geolocation=(), payment=(self)"
-    Content-Security-Policy    = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://*.supabase.co https://api.anthropic.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; form-action 'self'; base-uri 'self'"
+    Content-Security-Policy    = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://*.supabase.co https://api.anthropic.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; form-action 'self'; base-uri 'self'"
 
 [build.environment]
   NODE_VERSION = "20"

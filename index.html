@@ -1174,6 +1174,7 @@
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
   // ── Supabase client — replace with your project values ──
   const SUPABASE_URL      = "https://tqnbpkkzxrnnenpvdisy.supabase.co";
@@ -2177,11 +2178,43 @@ document.getElementById("logout-btn").addEventListener("click", async () => {
 
 // ── Auth modal ─────────────────────────────────────────────────────────────
 let _authMode = "signin";
+let _captchaToken = null;
+let _turnstileId  = null;
+const _TURNSTILE_SITE_KEY = "0x4AAAAAАDov4YNr0xiZNbyh";
+
+function _syncSubmitBtn() {
+  const btn = document.getElementById("auth-submit");
+  if (!btn) return;
+  btn.disabled = !_captchaToken;
+  btn.style.opacity = _captchaToken ? "1" : "0.5";
+  btn.style.cursor  = _captchaToken ? "pointer" : "not-allowed";
+}
+
+function _renderTurnstile() {
+  const container = document.getElementById("auth-turnstile");
+  if (!container || typeof turnstile === "undefined") return;
+  if (_turnstileId !== null) {
+    turnstile.reset(_turnstileId);
+    _captchaToken = null;
+    _syncSubmitBtn();
+    return;
+  }
+  _turnstileId = turnstile.render(container, {
+    sitekey: _TURNSTILE_SITE_KEY,
+    theme: "dark",
+    callback: function(token) { _captchaToken = token; _syncSubmitBtn(); },
+    "expired-callback": function() { _captchaToken = null; _syncSubmitBtn(); },
+    "error-callback":   function() { _captchaToken = null; _syncSubmitBtn(); },
+  });
+}
 
 function openAuthModal(mode) {
   authTab(mode || "signin");
   document.getElementById("auth-modal").style.display = "flex";
-  setTimeout(() => document.getElementById("auth-email").focus(), 80);
+  setTimeout(() => {
+    document.getElementById("auth-email").focus();
+    _renderTurnstile();
+  }, 80);
 }
 
 function closeAuthModal() {
@@ -2190,6 +2223,9 @@ function closeAuthModal() {
   document.getElementById("auth-success").style.display = "none";
   document.getElementById("auth-email").value    = "";
   document.getElementById("auth-password").value = "";
+  _captchaToken = null;
+  if (_turnstileId !== null && typeof turnstile !== "undefined") turnstile.reset(_turnstileId);
+  _syncSubmitBtn();
 }
 
 function authTab(mode) {
@@ -2212,6 +2248,9 @@ function authTab(mode) {
   }
   document.getElementById("auth-error").style.display   = "none";
   document.getElementById("auth-success").style.display = "none";
+  _captchaToken = null;
+  if (_turnstileId !== null && typeof turnstile !== "undefined") turnstile.reset(_turnstileId);
+  _syncSubmitBtn();
 }
 
 function showAuthMsg(msg, isError) {
@@ -2226,16 +2265,32 @@ async function authSubmit() {
   const password = document.getElementById("auth-password").value;
   const btn      = document.getElementById("auth-submit");
   if (!email || !password) { showAuthMsg("Email and password are required.", true); return; }
+  if (!_captchaToken) { showAuthMsg("Please complete the security check.", true); return; }
   btn.disabled    = true;
   btn.textContent = _authMode === "signin" ? "Signing in…" : "Creating account…";
+  const captchaToken = _captchaToken;
   if (_authMode === "signin") {
-    const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-    if (error) { showAuthMsg(error.message || "Sign in failed. Check your email and password.", true); btn.disabled = false; btn.textContent = "Sign In"; return; }
+    const { data, error } = await _supabase.auth.signInWithPassword({ email, password, options: { captchaToken } });
+    if (error) {
+      showAuthMsg(error.message || "Sign in failed. Check your email and password.", true);
+      _captchaToken = null;
+      if (_turnstileId !== null && typeof turnstile !== "undefined") turnstile.reset(_turnstileId);
+      btn.disabled = false; btn.textContent = "Sign In";
+      _syncSubmitBtn();
+      return;
+    }
     updateAuthUI(data.session);
     closeAuthModal();
   } else {
-    const { data, error } = await _supabase.auth.signUp({ email, password });
-    if (error) { showAuthMsg(error.message || "Sign up failed. Try again.", true); btn.disabled = false; btn.textContent = "Create Account"; return; }
+    const { data, error } = await _supabase.auth.signUp({ email, password, options: { captchaToken } });
+    if (error) {
+      showAuthMsg(error.message || "Sign up failed. Try again.", true);
+      _captchaToken = null;
+      if (_turnstileId !== null && typeof turnstile !== "undefined") turnstile.reset(_turnstileId);
+      btn.disabled = false; btn.textContent = "Create Account";
+      _syncSubmitBtn();
+      return;
+    }
     if (data.session) { updateAuthUI(data.session); closeAuthModal(); }
     else { showAuthMsg("Account created! Check your email to confirm, then sign in.", false); btn.disabled = false; btn.textContent = "Create Account"; }
   }
@@ -2497,6 +2552,7 @@ function renderHistoryRows(rows) {
             style="width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s;"
             onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
         </div>
+        <div id="auth-turnstile" style="min-height:65px;display:flex;align-items:center;justify-content:center;"></div>
         <button id="auth-submit" onclick="authSubmit()"
           style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:10px;color:#04121e;font-family:var(--display);font-weight:700;font-size:15px;cursor:pointer;margin-top:4px;transition:opacity .15s;"
           onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
