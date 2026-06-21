@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IPv4 Subnet Calculator - Free Tool | FirewallIQ</title>
+<meta name="description" content="Free IPv4 subnet calculator. Enter any address in CIDR notation and instantly see network address, broadcast, host range, usable hosts, subnet mask, wildcard, and more. Split subnets into smaller blocks. All calculations happen in your browser - nothing is transmitted." />
+<meta property="og:title" content="IPv4 Subnet Calculator | FirewallIQ" />
+<meta property="og:description" content="Free browser-based IPv4 subnet calculator. Instant results, no login required, nothing transmitted." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://firewalliq.io/subnet-calc" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="IPv4 Subnet Calculator | FirewallIQ" />
+<meta name="twitter:description" content="Free browser-based IPv4 subnet calculator. Instant results, no login required, nothing transmitted." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='5' fill='%230a101c'/><path d='M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z' stroke='%2338bdf8' stroke-width='1.4' stroke-linejoin='round' fill='none'/><path d='M8.7 12.2l2.2 2.2 4.2-4.6' stroke='%2338bdf8' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a101c;
+    --surface: #111a2c;
+    --surface-2: #0e1626;
+    --border: #1f2c44;
+    --border-soft: #18233a;
+    --text: #e8eef8;
+    --text-dim: #93a1bd;
+    --text-faint: #64759a;
+    --accent: #38bdf8;
+    --accent-deep: #0ea5e9;
+    --crit: #f0476a;
+    --high: #fb8c42;
+    --med: #f2c94c;
+    --low: #5b9bd5;
+    --pass: #2bd4a0;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background:
+      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px),
+      radial-gradient(1200px 600px at 50% -8%, rgba(56,189,248,0.10), transparent 68%),
+      var(--bg);
+    background-size: 72px 72px, 72px 72px, 100% 100%;
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Top Nav ── */
+  .topnav {
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(10,16,28,0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .nav-inner { display: flex; align-items: center; height: 62px; gap: 24px; }
+  .nav-text-links { display: flex; align-items: center; gap: 28px; margin-left: auto; }
+  .nav-text-links a {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-faint); text-decoration: none;
+    letter-spacing: 0.04em; transition: color .15s;
+  }
+  .nav-text-links a:hover { color: var(--text); }
+  .nav-text-links a[aria-current="page"] { color: var(--accent); }
+  .nav-cta {
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.02em; color: #04121e;
+    background: var(--accent); border: 0; border-radius: 8px;
+    padding: 8px 16px; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center;
+    transition: background .15s; white-space: nowrap; flex-shrink: 0;
+  }
+  .nav-cta:hover { background: #5cc9fb; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .mark {
+    width: 34px; height: 34px; flex: none;
+    border: 1px solid var(--border); border-radius: 9px;
+    background: linear-gradient(180deg, #14213a, #0d1424);
+    display: grid; place-items: center;
+    position: relative; overflow: hidden;
+  }
+  .mark svg { width: 20px; height: 20px; display: block; }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; }
+  .wordmark span { color: var(--accent); }
+
+  /* ── Page layout ── */
+  main { padding: 72px 0 100px; }
+
+  .page-eyebrow {
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--accent); display: block; margin: 0 0 18px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(32px, 5vw, 48px);
+    letter-spacing: -0.03em; line-height: 1.07;
+    color: var(--text); margin: 0 0 16px;
+  }
+  .page-sub {
+    font-size: 17px; color: var(--text-dim);
+    line-height: 1.7; margin: 0 0 48px; max-width: 56ch;
+  }
+
+  /* ── Tab switcher ── */
+  .sc-tabs {
+    display: flex; gap: 4px; margin-bottom: 28px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; width: fit-content;
+  }
+  .sc-tab {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-faint); background: transparent;
+    border: 1px solid transparent; border-radius: 7px;
+    padding: 8px 18px; cursor: pointer;
+    transition: color .15s, background .15s, border-color .15s;
+    letter-spacing: 0.02em;
+  }
+  .sc-tab:hover { color: var(--text-dim); }
+  .sc-tab.active {
+    background: var(--surface-2); color: var(--text);
+    border-color: var(--border);
+  }
+
+  /* ── Input panel ── */
+  .sc-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden;
+  }
+  .sc-panel-body { padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+  .sc-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+  .sc-row .sc-field { flex: 1; min-width: 180px; }
+  .sc-field { display: flex; flex-direction: column; gap: 8px; }
+  .sc-label {
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-faint);
+  }
+  .sc-input {
+    appearance: none; background: var(--surface-2);
+    border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 15px;
+    padding: 12px 16px; border-radius: 9px;
+    width: 100%; max-width: 420px; outline: none;
+    transition: border-color .15s;
+  }
+  .sc-input:focus { border-color: var(--accent); }
+  .sc-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sc-input::placeholder { color: var(--text-faint); }
+  .sc-panel-foot {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 24px; border-top: 1px solid var(--border-soft);
+    background: var(--surface);
+  }
+  .btn {
+    font-family: var(--sans); font-weight: 600; font-size: 14px;
+    color: #04121e; background: var(--accent);
+    border: 0; border-radius: 10px; padding: 11px 22px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 9px;
+    transition: background .15s ease, transform .05s ease;
+  }
+  .btn:hover { background: #5cc9fb; }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn.ghost:hover { color: var(--text); border-color: var(--text-faint); background: transparent; }
+  .btn.sm { font-size: 12px; padding: 8px 14px; border-radius: 8px; }
+
+  /* ── Error ── */
+  .sc-error {
+    margin-top: 16px; border: 1px solid rgba(240,71,106,0.4);
+    background: rgba(240,71,106,0.08); color: #ffc4d0;
+    border-radius: 11px; padding: 13px 16px;
+    font-size: 13.5px; font-family: var(--mono);
+  }
+
+  /* ── Mode 1 result grid ── */
+  .result-section { margin-top: 28px; }
+  .result-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+  }
+  .result-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+  }
+  .result-card.full-width { grid-column: 1 / -1; }
+  .result-card.accent-left { border-left: 3px solid var(--accent); }
+  .result-lbl {
+    font-family: var(--mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--text-faint); margin: 0 0 6px;
+    display: block;
+  }
+  .result-val {
+    font-family: var(--mono); font-size: 15px;
+    color: var(--text); margin: 0;
+    word-break: break-all; line-height: 1.4;
+  }
+  .result-val.accent { color: var(--accent); }
+  .result-val.pass   { color: var(--pass); }
+  .result-val.warn   { color: var(--med); }
+  .result-val.dim    { color: var(--text-dim); }
+  .result-val.small  { font-size: 12px; }
+
+  /* ── Mode 2 split table ── */
+  .split-result-hd {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 28px; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;
+  }
+  .split-count {
+    font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+  }
+  .split-table-wrap {
+    border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; overflow-x: auto;
+  }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-family: var(--mono); font-size: 12.5px;
+  }
+  thead th {
+    background: var(--surface); color: var(--text-faint);
+    font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.12em; padding: 12px 16px;
+    text-align: left; border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 9px 16px; color: var(--text-dim);
+    border-bottom: 1px solid var(--border-soft);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:nth-child(even) td { background: rgba(17,26,44,0.4); }
+  tbody td:first-child { color: var(--text-faint); }
+  tbody td:nth-child(2) { color: var(--accent); }
+  .split-overflow-note {
+    margin-top: 12px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--text-faint); letter-spacing: 0.02em;
+  }
+
+  /* ── Zero storage note ── */
+  .trust-note {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: rgba(43,212,160,0.07); border: 1px solid rgba(43,212,160,0.2);
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 13px; font-family: var(--mono);
+    color: var(--text-dim); margin-top: 36px; letter-spacing: 0.01em;
+    line-height: 1.6;
+  }
+  .trust-icon { color: var(--pass); flex: none; margin-top: 1px; }
+
+  /* ── VPN cross-link ── */
+  .vpn-cross-link {
+    margin-top: 20px; padding: 16px 20px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; font-size: 13.5px; color: var(--text-dim);
+    font-family: var(--sans); line-height: 1.6;
+  }
+  .vpn-cross-link a {
+    color: var(--accent); text-decoration: none;
+    text-underline-offset: 3px;
+  }
+  .vpn-cross-link a:hover { text-decoration: underline; }
+
+  /* ── Footer ── */
+  .footer-full { border-top: 1px solid var(--border-soft); padding: 48px 0 24px; }
+  .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .footer-brand-col .wordmark { font-size: 17px; margin-bottom: 12px; display: block; }
+  .footer-tagline { font-size: 13px; color: var(--text-dim); font-family: var(--sans); line-height: 1.6; margin: 0 0 18px; max-width: 30ch; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(43,212,160,0.07); border: 1px solid rgba(43,212,160,0.2);
+    border-radius: 8px; padding: 6px 12px; font-family: var(--mono);
+    font-size: 11px; color: var(--pass); letter-spacing: 0.04em;
+  }
+  .footer-col-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 16px; display: block; }
+  .footer-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .footer-links a { color: var(--text-dim); text-decoration: none; font-size: 13px; font-family: var(--sans); transition: color .15s; }
+  .footer-links a:hover { color: var(--text); }
+  .footer-bottom { border-top: 1px solid var(--border-soft); padding-top: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+
+  /* ── Responsive ── */
+  @media (max-width: 860px) {
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .footer-brand-col { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .footer-grid { grid-template-columns: 1fr; }
+    .nav-text-links { display: none; }
+    main { padding: 48px 0 72px; }
+    .result-grid { grid-template-columns: 1fr; }
+    .result-card.full-width { grid-column: unset; }
+    .sc-input { max-width: 100%; }
+    .sc-tabs { width: 100%; }
+    .sc-tab { flex: 1; text-align: center; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const SUPABASE_URL      = "https://tqnbpkkzxrnnenpvdisy.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_ZyWkzDbxYe94AeqSEQJ1bw_PuIbueQO";
+  const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+</head>
+<body>
+
+  <!-- ── Sticky Top Nav ── -->
+  <nav class="topnav" aria-label="Site navigation">
+    <div class="wrap">
+      <div class="nav-inner">
+        <a href="/" class="brand" style="text-decoration:none;color:inherit;">
+          <div class="mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 2.5l7 2.6v5.1c0 4.5-3 7.8-7 9.3-4-1.5-7-4.8-7-9.3V5.1l7-2.6z" stroke="#38bdf8" stroke-width="1.4" stroke-linejoin="round"/>
+              <path d="M8.7 12.2l2.2 2.2 4.2-4.6" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="wordmark">Firewall<span>IQ</span></div>
+        </a>
+        <div class="identity-bar" id="identity-bar" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+          <span id="user-email" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);"></span>
+          <button id="login-btn" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
+          <button id="logout-btn" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
+        </div>
+        <div class="nav-text-links">
+          <a href="/#features">Features</a>
+          <a href="/#pricing">Pricing</a>
+          <a href="/docs">Docs</a>
+          <a href="/security">Security</a>
+          <a href="/subnet-calc" aria-current="page">Subnet Calc</a>
+          <a href="https://vpn.firewalliq.io">VPN Matrix</a>
+        </div>
+        <a href="/#audit" class="nav-cta">Start auditing</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="wrap">
+      <span class="page-eyebrow">Free Tools</span>
+      <h1>IPv4 Subnet Calculator</h1>
+      <p class="page-sub">Enter any IPv4 address in CIDR notation to see network address, broadcast, host range, subnet mask, and more. Or split a network block into smaller subnets. Everything runs in your browser.</p>
+
+      <!-- ── Tab switcher ── -->
+      <div class="sc-tabs" role="tablist" aria-label="Calculator mode">
+        <button class="sc-tab active" id="tab-details" role="tab" aria-selected="true" aria-controls="mode-details">IP to Subnet Details</button>
+        <button class="sc-tab" id="tab-split" role="tab" aria-selected="false" aria-controls="mode-split">Subnet Splitter</button>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           MODE 1 — IP to Subnet Details
+      ══════════════════════════════════════════ -->
+      <div id="mode-details" role="tabpanel" aria-labelledby="tab-details">
+        <div class="sc-panel">
+          <div class="sc-panel-body">
+            <div class="sc-field">
+              <label class="sc-label" for="details-input">IPv4 address in CIDR notation</label>
+              <input class="sc-input" id="details-input" type="text"
+                placeholder="192.168.10.50/24"
+                autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
+            </div>
+          </div>
+          <div class="sc-panel-foot">
+            <button class="btn" id="details-btn" type="button">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="#04121e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Calculate
+            </button>
+            <span style="font-family:var(--mono);font-size:11.5px;color:var(--text-faint);">e.g. 10.0.0.1/8 or 192.168.1.0/24</span>
+          </div>
+        </div>
+
+        <div class="sc-error" id="details-error" hidden></div>
+
+        <div class="result-section" id="details-result" hidden>
+          <div class="result-grid" id="details-grid"></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           MODE 2 — Subnet Splitter
+      ══════════════════════════════════════════ -->
+      <div id="mode-split" role="tabpanel" aria-labelledby="tab-split" hidden>
+        <div class="sc-panel">
+          <div class="sc-panel-body">
+            <div class="sc-row">
+              <div class="sc-field">
+                <label class="sc-label" for="split-base">Base network (CIDR)</label>
+                <input class="sc-input" id="split-base" type="text"
+                  placeholder="10.0.0.0/16"
+                  autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
+              </div>
+              <div class="sc-field">
+                <label class="sc-label" for="split-prefix">Split into /<span id="split-prefix-display">24</span></label>
+                <input class="sc-input" id="split-prefix" type="text"
+                  placeholder="24" style="max-width:120px;"
+                  autocomplete="off" spellcheck="false" />
+              </div>
+            </div>
+          </div>
+          <div class="sc-panel-foot">
+            <button class="btn" id="split-btn" type="button">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="#04121e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Split
+            </button>
+            <span style="font-family:var(--mono);font-size:11.5px;color:var(--text-faint);">New prefix must be longer than base (larger number)</span>
+          </div>
+        </div>
+
+        <div class="sc-error" id="split-error" hidden></div>
+
+        <div id="split-result" hidden>
+          <div class="split-result-hd">
+            <span class="split-count" id="split-count"></span>
+            <button class="btn ghost sm" id="copy-btn" type="button">Copy all as text</button>
+          </div>
+          <div class="split-table-wrap">
+            <table id="split-table" aria-label="Subnet list">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Network address</th>
+                  <th>Broadcast</th>
+                  <th>Usable range</th>
+                  <th>Hosts</th>
+                </tr>
+              </thead>
+              <tbody id="split-tbody"></tbody>
+            </table>
+          </div>
+          <p class="split-overflow-note" id="split-overflow" hidden></p>
+        </div>
+      </div>
+
+      <!-- ── Zero storage note ── -->
+      <div class="trust-note" role="note">
+        <svg class="trust-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Everything is calculated in your browser. Nothing you enter here is ever transmitted or stored.
+      </div>
+
+      <!-- ── VPN cross-link ── -->
+      <div class="vpn-cross-link">
+        Need to build a VPN between two of these subnets? Try <a href="https://vpn.firewalliq.io">VPN Matrix</a> free at vpn.firewalliq.io
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer class="footer-full">
+    <div class="wrap">
+      <div class="footer-grid">
+
+        <div class="footer-brand-col">
+          <a href="/" style="text-decoration:none;color:inherit;">
+            <span class="wordmark">Firewall<span style="color:var(--accent);">IQ</span></span>
+          </a>
+          <p class="footer-tagline">AI-powered firewall compliance auditing for network engineers and MSPs. Scored reports in under 60 seconds.</p>
+          <span class="footer-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Zero config storage -- ever
+          </span>
+        </div>
+
+        <div>
+          <span class="footer-col-title">Product</span>
+          <ul class="footer-links">
+            <li><a href="/sample">Sample Report</a></li>
+            <li><a href="/#pricing">Pricing</a></li>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/docs">Docs</a></li>
+            <li><a href="/security">Security</a></li>
+            <li><a href="/subnet-calc">Subnet Calc</a></li>
+            <li><a href="https://vpn.firewalliq.io">VPN Matrix</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <span class="footer-col-title">Legal</span>
+          <ul class="footer-links">
+            <li><a href="/terms">Terms of Service</a></li>
+            <li><a href="/privacy">Privacy Policy</a></li>
+          </ul>
+          <span class="footer-col-title" style="margin-top:24px;display:block;">Support</span>
+          <ul class="footer-links">
+            <li><a href="mailto:support@firewalliq.io">support@firewalliq.io</a></li>
+          </ul>
+        </div>
+
+      </div>
+      <div class="footer-bottom">
+        <span>&#169; 2025&#8211;2026 Treesh Tech LLC &#183; All rights reserved</span>
+        <span style="color:var(--pass);">&#9679; Configs are never stored or logged</span>
+      </div>
+    </div>
+  </footer>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SUBNET CALCULATOR — Pure JavaScript, all math is bitwise on
+     32-bit unsigned integers. No server calls, no libraries.
+════════════════════════════════════════════════════════════════ -->
+<script>
+"use strict";
+
+// ── Core IPv4 bit math ────────────────────────────────────────
+// JavaScript bitwise operators work on signed 32-bit integers.
+// The >>> 0 suffix re-interprets the result as unsigned 32-bit,
+// which prevents issues with addresses whose high bit is set
+// (e.g. 192.x.x.x / 128.x.x.x) appearing as negative numbers.
+
+function ipToInt(ip) {
+  var p = ip.split(".");
+  // Each octet occupies 8 bits; octet[0] sits in the most-significant byte.
+  return (
+    ((parseInt(p[0], 10) & 0xFF) << 24) |
+    ((parseInt(p[1], 10) & 0xFF) << 16) |
+    ((parseInt(p[2], 10) & 0xFF) <<  8) |
+     (parseInt(p[3], 10) & 0xFF)
+  ) >>> 0;
+}
+
+function intToIp(n) {
+  // Extract each byte with a right-shift and 0xFF mask, then join with dots.
+  return [
+    (n >>> 24) & 0xFF,
+    (n >>> 16) & 0xFF,
+    (n >>>  8) & 0xFF,
+     n         & 0xFF
+  ].join(".");
+}
+
+function prefixToMask(prefix) {
+  // /24 example: 0xFFFFFFFF << (32-24) = 0xFFFFFFFF << 8 = 0xFFFFFF00
+  // /0 special case: left-shifting by 32 is undefined in JS (returns original value),
+  // so we handle it explicitly.
+  if (prefix === 0) return 0;
+  return (0xFFFFFFFF << (32 - prefix)) >>> 0;
+}
+
+// ── Validation ───────────────────────────────────────────────
+
+function validateAndParse(cidr) {
+  var trimmed = (cidr || "").trim();
+  if (!trimmed) throw new Error("Enter an IPv4 address in CIDR notation, e.g. 192.168.1.0/24");
+
+  var slash = trimmed.indexOf("/");
+  if (slash === -1) throw new Error("Missing prefix length. Use format: 192.168.1.0/24");
+  if (trimmed.indexOf("/", slash + 1) !== -1) throw new Error("Too many slashes in input");
+
+  var ipStr     = trimmed.slice(0, slash);
+  var prefixStr = trimmed.slice(slash + 1);
+
+  var octets = ipStr.split(".");
+  if (octets.length !== 4) throw new Error("IPv4 address must have exactly 4 octets (e.g. 192.168.1.0)");
+
+  for (var i = 0; i < 4; i++) {
+    var raw = octets[i];
+    if (!/^\d+$/.test(raw)) {
+      throw new Error("Octet " + (i + 1) + ' "' + raw + '" is not a valid number');
+    }
+    var val = parseInt(raw, 10);
+    if (val < 0 || val > 255) {
+      throw new Error("Octet " + (i + 1) + " value " + val + " is out of range (must be 0-255)");
+    }
+  }
+
+  if (!/^\d+$/.test(prefixStr)) {
+    throw new Error('Prefix length "' + prefixStr + '" must be a number between 0 and 32');
+  }
+  var prefix = parseInt(prefixStr, 10);
+  if (prefix < 0 || prefix > 32) {
+    throw new Error("Prefix length " + prefix + " is out of range (must be 0-32)");
+  }
+
+  return { ipStr: ipStr, prefix: prefix };
+}
+
+// ── Subnet detail calculation ─────────────────────────────────
+//
+// Spot checks (verified here in comments):
+//
+//   192.168.1.0/24
+//     mask      = 0xFFFFFF00 = 255.255.255.0
+//     wildcard  = 0x000000FF = 0.0.0.255
+//     network   = 192.168.1.0
+//     broadcast = 192.168.1.255
+//     firstHost = 192.168.1.1
+//     lastHost  = 192.168.1.254
+//     usable    = 254  (256 - 2)   [PASS]
+//
+//   10.0.0.0/8
+//     mask      = 0xFF000000 = 255.0.0.0
+//     network   = 10.0.0.0
+//     broadcast = 10.255.255.255
+//     totalHosts = 16777216, usable = 16777214
+//
+//   0.0.0.0/0
+//     mask      = 0x00000000 = 0.0.0.0  (>>> 0 path)
+//     wildcard  = 0xFFFFFFFF = 255.255.255.255
+//     network   = 0.0.0.0
+//     broadcast = 255.255.255.255
+//     totalHosts = 4294967296, usable = 4294967294
+//     (no crash; supernet = "N/A")  [PASS]
+
+function calcSubnetDetails(cidr) {
+  var p = validateAndParse(cidr);
+  var ipInt  = ipToInt(p.ipStr);
+  var prefix = p.prefix;
+
+  // Subnet mask: prefix 1-bits followed by (32-prefix) 0-bits
+  var mask = prefixToMask(prefix);
+
+  // Wildcard = bitwise NOT of mask.  ~mask produces a signed 32-bit int,
+  // so >>> 0 flips it back to unsigned.
+  var wildcard = (~mask) >>> 0;
+
+  // Network address = host address with all host bits zeroed
+  var network   = (ipInt & mask) >>> 0;
+
+  // Broadcast = network with all host bits set to 1
+  var broadcast = (network | wildcard) >>> 0;
+
+  // Total addresses in this block = 2^(32-prefix)
+  // Math.pow avoids integer overflow issues with large prefixes.
+  var totalHosts = Math.pow(2, 32 - prefix);
+
+  // Host range rules:
+  //   /32  — single host; network == broadcast, both are the host address
+  //   /31  — RFC 3021 point-to-point; both addresses usable, no broadcast/network waste
+  //   else — first and last addresses reserved for network and broadcast
+  var firstHostInt, lastHostInt, usableHosts;
+  if (prefix >= 31) {
+    firstHostInt = network;
+    lastHostInt  = broadcast;
+    usableHosts  = totalHosts; // /31 = 2, /32 = 1
+  } else {
+    firstHostInt = (network    + 1) >>> 0;
+    lastHostInt  = (broadcast  - 1) >>> 0;
+    usableHosts  = totalHosts - 2;
+  }
+
+  // IP class — determined by the leading bits of the first octet
+  var firstOctet = (ipInt >>> 24) & 0xFF;
+  var ipClass;
+  if      (firstOctet < 128) ipClass = "A";
+  else if (firstOctet < 192) ipClass = "B";
+  else if (firstOctet < 224) ipClass = "C";
+  else if (firstOctet < 240) ipClass = "D (Multicast)";
+  else                       ipClass = "E (Reserved)";
+
+  // RFC 1918 private ranges:
+  //   10.0.0.0/8        first octet == 10
+  //   172.16.0.0/12     first octet == 172, second octet 16-31
+  //   192.168.0.0/16    first octet == 192, second octet == 168
+  var secondOctet = (ipInt >>> 16) & 0xFF;
+  var isPrivate = (
+    (firstOctet === 10) ||
+    (firstOctet === 172 && secondOctet >= 16 && secondOctet <= 31) ||
+    (firstOctet === 192 && secondOctet === 168)
+  );
+
+  // Special addresses
+  var isLoopback  = (firstOctet === 127);
+  var isLinkLocal = (firstOctet === 169 && secondOctet === 254);
+
+  // Binary representation: write mask as 32 binary digits, group into 4 octets
+  var binaryMask = mask.toString(2).padStart(32, "0")
+    .match(/.{8}/g).join(".");
+
+  // Supernet — the block one prefix shorter that contains this network.
+  // For /0 there is no supernet.
+  var supernet;
+  if (prefix === 0) {
+    supernet = "N/A (already covers the entire internet)";
+  } else {
+    var superMask = prefixToMask(prefix - 1);
+    supernet = intToIp((network & superMask) >>> 0) + "/" + (prefix - 1);
+  }
+
+  // Address scope label for display
+  var scope;
+  if (isLoopback)        scope = "Loopback (RFC 5735)";
+  else if (isLinkLocal)  scope = "Link-local (RFC 3927)";
+  else if (isPrivate)    scope = "Private (RFC 1918)";
+  else                   scope = "Public / Routable";
+
+  return {
+    inputIp:     p.ipStr,
+    prefix:      prefix,
+    network:     intToIp(network),
+    mask:        intToIp(mask),
+    wildcard:    intToIp(wildcard),
+    broadcast:   intToIp(broadcast),
+    firstHost:   intToIp(firstHostInt),
+    lastHost:    intToIp(lastHostInt),
+    totalHosts:  totalHosts,
+    usableHosts: usableHosts,
+    cidr:        intToIp(network) + "/" + prefix,
+    binaryMask:  binaryMask,
+    ipClass:     ipClass,
+    scope:       scope,
+    supernet:    supernet
+  };
+}
+
+// ── Subnet split calculation ──────────────────────────────────
+//
+// Spot check:
+//   10.0.0.0/16 split into /24
+//     bits = 24 - 16 = 8
+//     count = 2^8 = 256 subnets
+//     subnetSize = 2^(32-24) = 256 addresses each
+//     Subnet 0: 10.0.0.0/24  ..  Subnet 255: 10.0.255.0/24  [PASS]
+
+function splitSubnet(baseCidr, newPrefixStr) {
+  var base = validateAndParse(baseCidr);
+
+  var raw = (newPrefixStr || "").trim();
+  if (!/^\d+$/.test(raw)) throw new Error("New prefix must be a number (e.g. 24)");
+  var newPrefix = parseInt(raw, 10);
+  if (newPrefix < 0 || newPrefix > 32) throw new Error("New prefix must be between 0 and 32");
+  if (newPrefix <= base.prefix) {
+    throw new Error(
+      "New prefix /" + newPrefix + " must be longer (a larger number) than the base /" + base.prefix
+    );
+  }
+
+  // How many extra bits are being allocated for subnet selection
+  var extraBits   = newPrefix - base.prefix;
+  var count       = Math.pow(2, extraBits);
+  // Each new subnet holds this many IP addresses
+  var subnetSize  = Math.pow(2, 32 - newPrefix);
+
+  // Align base network to its own mask before computing subnets
+  var baseMask    = prefixToMask(base.prefix);
+  var baseNetwork = (ipToInt(base.ipStr) & baseMask) >>> 0;
+
+  var displayRows = Math.min(count, 256);
+  var rows = [];
+
+  for (var i = 0; i < displayRows; i++) {
+    // The i-th subnet starts at baseNetwork + i * subnetSize.
+    // >>> 0 keeps everything in 32-bit unsigned territory.
+    var netInt       = (baseNetwork + i * subnetSize) >>> 0;
+    var broadcastInt = (netInt + subnetSize - 1) >>> 0;
+
+    var firstStr, lastStr, usable;
+    if (newPrefix >= 31) {
+      firstStr = intToIp(netInt);
+      lastStr  = intToIp(broadcastInt);
+      usable   = subnetSize;
+    } else {
+      firstStr = intToIp((netInt + 1) >>> 0);
+      lastStr  = intToIp((broadcastInt - 1) >>> 0);
+      usable   = subnetSize - 2;
+    }
+
+    rows.push({
+      num:       i + 1,
+      network:   intToIp(netInt) + "/" + newPrefix,
+      broadcast: intToIp(broadcastInt),
+      range:     firstStr + " - " + lastStr,
+      usable:    usable
+    });
+  }
+
+  return {
+    rows:       rows,
+    totalCount: count,
+    capped:     count > 256,
+    newPrefix:  newPrefix
+  };
+}
+
+// ── DOM helpers ───────────────────────────────────────────────
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function fmt(n) {
+  // Format large numbers with commas for readability
+  return Number(n).toLocaleString();
+}
+
+function showError(el, msg) {
+  el.textContent = msg;
+  el.hidden = false;
+}
+
+function clearError(el) {
+  el.hidden = true;
+  el.textContent = "";
+}
+
+// ── Render Mode 1 results ─────────────────────────────────────
+
+function renderDetails(d) {
+  var grid = document.getElementById("details-grid");
+
+  // Each card: { label, value, cls (optional CSS class for value), wide (optional) }
+  var cards = [
+    { label: "Network address",     value: d.network,                      cls: "accent accent-left", wide: false },
+    { label: "CIDR notation",       value: d.cidr,                         cls: "accent",             wide: false },
+    { label: "Subnet mask",         value: d.mask,                         cls: "",                   wide: false },
+    { label: "Wildcard mask",       value: d.wildcard,                     cls: "",                   wide: false },
+    { label: "Broadcast address",   value: d.broadcast,                    cls: "",                   wide: false },
+    { label: "First usable host",   value: d.prefix >= 31 ? d.firstHost + " (point-to-point)" : d.firstHost,
+                                                                            cls: "pass",               wide: false },
+    { label: "Last usable host",    value: d.prefix >= 31 ? d.lastHost  + " (point-to-point)" : d.lastHost,
+                                                                            cls: "pass",               wide: false },
+    { label: "Total hosts",         value: fmt(d.totalHosts),              cls: "",                   wide: false },
+    { label: "Usable hosts",        value: fmt(d.usableHosts),             cls: "",                   wide: false },
+    { label: "IP class",            value: "Class " + d.ipClass,           cls: "dim",                wide: false },
+    { label: "Address scope",       value: d.scope,                        cls: d.scope.indexOf("Public") !== -1 ? "warn" : "pass", wide: false },
+    { label: "Supernet (one up)",   value: d.supernet,                     cls: "dim",                wide: false },
+    { label: "Subnet mask (binary)", value: d.binaryMask,                  cls: "small",              wide: true  }
+  ];
+
+  grid.innerHTML = cards.map(function(c) {
+    // accent-left is applied to the card, not the value
+    var cardCls = "result-card" + (c.wide ? " full-width" : "") + (c.cls.indexOf("accent-left") !== -1 ? " accent-left" : "");
+    var valCls  = "result-val " + c.cls.replace("accent-left", "");
+    return '<div class="' + cardCls + '">' +
+             '<span class="result-lbl">' + esc(c.label) + '</span>' +
+             '<p class="' + valCls + '">' + esc(c.value) + '</p>' +
+           '</div>';
+  }).join("");
+
+  document.getElementById("details-result").hidden = false;
+}
+
+// ── Render Mode 2 results ─────────────────────────────────────
+
+var _lastSplitRows = [];
+var _lastSplitTotalCount = 0;
+
+function renderSplit(result) {
+  _lastSplitRows       = result.rows;
+  _lastSplitTotalCount = result.totalCount;
+
+  var tbody = document.getElementById("split-tbody");
+  tbody.innerHTML = result.rows.map(function(r) {
+    return "<tr>" +
+      "<td>" + esc(String(r.num)) + "</td>" +
+      "<td>" + esc(r.network)   + "</td>" +
+      "<td>" + esc(r.broadcast) + "</td>" +
+      "<td>" + esc(r.range)     + "</td>" +
+      "<td>" + esc(fmt(r.usable)) + "</td>" +
+    "</tr>";
+  }).join("");
+
+  var countEl = document.getElementById("split-count");
+  var overflowEl = document.getElementById("split-overflow");
+
+  if (result.capped) {
+    countEl.textContent = "Showing first 256 of " + fmt(result.totalCount) + " subnets";
+    overflowEl.textContent =
+      "This split produces " + fmt(result.totalCount) + " subnets total. " +
+      "Only the first 256 are shown. Use Copy All to get the complete list.";
+    overflowEl.hidden = false;
+  } else {
+    countEl.textContent = fmt(result.totalCount) + (result.totalCount === 1 ? " subnet" : " subnets");
+    overflowEl.hidden = true;
+  }
+
+  document.getElementById("split-result").hidden = false;
+}
+
+// ── Copy-all logic ────────────────────────────────────────────
+
+function buildPlainText(rows, totalCount, capped) {
+  var header = ["#", "Network address", "Broadcast", "Usable range", "Hosts"].join("\t");
+  var lines  = rows.map(function(r) {
+    return [r.num, r.network, r.broadcast, r.range, r.usable].join("\t");
+  });
+  var out = header + "\n" + lines.join("\n");
+  if (capped) {
+    out += "\n\n(Showing 256 of " + fmt(totalCount) + " total subnets)";
+  }
+  return out;
+}
+
+// ── Tab switching ─────────────────────────────────────────────
+
+document.getElementById("tab-details").addEventListener("click", function() {
+  document.getElementById("mode-details").hidden = false;
+  document.getElementById("mode-split").hidden   = true;
+  document.getElementById("tab-details").classList.add("active");
+  document.getElementById("tab-split").classList.remove("active");
+  document.getElementById("tab-details").setAttribute("aria-selected", "true");
+  document.getElementById("tab-split").setAttribute("aria-selected", "false");
+});
+
+document.getElementById("tab-split").addEventListener("click", function() {
+  document.getElementById("mode-details").hidden = true;
+  document.getElementById("mode-split").hidden   = false;
+  document.getElementById("tab-details").classList.remove("active");
+  document.getElementById("tab-split").classList.add("active");
+  document.getElementById("tab-details").setAttribute("aria-selected", "false");
+  document.getElementById("tab-split").setAttribute("aria-selected", "true");
+});
+
+// ── Mode 1 — calculate on button click or Enter ───────────────
+
+function runDetails() {
+  var input    = document.getElementById("details-input");
+  var errorEl  = document.getElementById("details-error");
+  var resultEl = document.getElementById("details-result");
+
+  clearError(errorEl);
+  resultEl.hidden = true;
+
+  try {
+    var d = calcSubnetDetails(input.value);
+    renderDetails(d);
+  } catch (e) {
+    showError(errorEl, e.message);
+  }
+}
+
+document.getElementById("details-btn").addEventListener("click", runDetails);
+document.getElementById("details-input").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") runDetails();
+});
+
+// ── Mode 2 — split on button click or Enter ───────────────────
+
+function runSplit() {
+  var baseInput  = document.getElementById("split-base");
+  var prefixInput = document.getElementById("split-prefix");
+  var errorEl    = document.getElementById("split-error");
+  var resultEl   = document.getElementById("split-result");
+
+  clearError(errorEl);
+  resultEl.hidden = true;
+
+  try {
+    var result = splitSubnet(baseInput.value, prefixInput.value);
+    renderSplit(result);
+  } catch (e) {
+    showError(errorEl, e.message);
+  }
+}
+
+document.getElementById("split-btn").addEventListener("click", runSplit);
+[document.getElementById("split-base"), document.getElementById("split-prefix")].forEach(function(el) {
+  el.addEventListener("keydown", function(e) { if (e.key === "Enter") runSplit(); });
+});
+
+// Sync label as user types the new prefix
+document.getElementById("split-prefix").addEventListener("input", function() {
+  var v = this.value.trim();
+  document.getElementById("split-prefix-display").textContent = v || "?";
+});
+
+// ── Copy all ─────────────────────────────────────────────────
+
+document.getElementById("copy-btn").addEventListener("click", function() {
+  var btn = this;
+  var text = buildPlainText(_lastSplitRows, _lastSplitTotalCount, _lastSplitTotalCount > 256);
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = "Copied!";
+    setTimeout(function() { btn.textContent = "Copy all as text"; }, 1800);
+  }).catch(function() {
+    // Fallback for environments where clipboard API is blocked
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity  = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    btn.textContent = "Copied!";
+    setTimeout(function() { btn.textContent = "Copy all as text"; }, 1800);
+  });
+});
+
+// ── Auth UI (consistent with other pages) ────────────────────
+
+function updateAuthUI(session) {
+  var loginBtn  = document.getElementById("login-btn");
+  var logoutBtn = document.getElementById("logout-btn");
+  var userEmail = document.getElementById("user-email");
+  if (session && session.user) {
+    if (loginBtn)  loginBtn.style.display  = "none";
+    if (logoutBtn) logoutBtn.style.display = "block";
+    if (userEmail) userEmail.textContent   = session.user.email;
+  } else {
+    if (loginBtn)  loginBtn.style.display  = "block";
+    if (logoutBtn) logoutBtn.style.display = "none";
+    if (userEmail) userEmail.textContent   = "";
+  }
+}
+
+_supabase.auth.onAuthStateChange(function(_event, session) { updateAuthUI(session); });
+_supabase.auth.getSession().then(function(r) { updateAuthUI(r.data && r.data.session || null); });
+
+document.getElementById("login-btn").addEventListener("click", function() {
+  window.location.href = "/#audit";
+});
+document.getElementById("logout-btn").addEventListener("click", function() {
+  _supabase.auth.signOut().then(function() { updateAuthUI(null); });
+});
+</script>
+
+</body>
+</html>

@@ -42,3 +42,8 @@
   from = "/user-plan"
   to = "/.netlify/functions/user-plan"
   status = 200
+
+[[redirects]]
+  from = "/subnet-calc"
+  to = "/subnet-calc.html"
+  status = 200
