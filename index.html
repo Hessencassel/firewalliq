@@ -2167,8 +2167,27 @@ function updateAuthUI(session) {
   }
 }
 
-_supabase.auth.onAuthStateChange((_event, session) => updateAuthUI(session));
-_supabase.auth.getSession().then(({ data }) => updateAuthUI(data?.session || null));
+_supabase.auth.onAuthStateChange(function(_event, session) {
+  updateAuthUI(session);
+  if (_event === 'PASSWORD_RECOVERY' && _waitingForRecovery) {
+    _waitingForRecovery = false;
+    document.getElementById("rp-loading").style.display = "none";
+    document.getElementById("rp-invalid").style.display = "none";
+    document.getElementById("rp-form").style.display    = "block";
+  }
+});
+_supabase.auth.getSession().then(function(_ref) {
+  updateAuthUI(_ref.data?.session || null);
+});
+
+(function() {
+  var _hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  if (window.location.pathname === '/reset-password' ||
+      window.location.pathname === '/reset-password/' ||
+      _hashParams.get('type') === 'recovery') {
+    showResetPasswordPage();
+  }
+})();
 
 document.getElementById("login-btn").addEventListener("click", () => openAuthModal("signin"));
 document.getElementById("logout-btn").addEventListener("click", async () => {
@@ -2177,9 +2196,12 @@ document.getElementById("logout-btn").addEventListener("click", async () => {
 });
 
 // ── Auth modal ─────────────────────────────────────────────────────────────
-let _authMode = "signin";
-let _captchaToken = null;
-let _turnstileId  = null;
+let _authMode           = "signin";
+let _captchaToken       = null;
+let _turnstileId        = null;
+let _forgotCaptchaToken = null;
+let _forgotTurnstileId  = null;
+let _waitingForRecovery = false;
 const _TURNSTILE_SITE_KEY = "0x4AAAAAАDov4YNr0xiZNbyh";
 
 function _syncSubmitBtn() {
@@ -2226,25 +2248,29 @@ function closeAuthModal() {
   _captchaToken = null;
   if (_turnstileId !== null && typeof turnstile !== "undefined") turnstile.reset(_turnstileId);
   _syncSubmitBtn();
+  hideForgotPanel();
 }
 
 function authTab(mode) {
   _authMode = mode;
-  const si = document.getElementById("tab-signin");
-  const su = document.getElementById("tab-signup");
+  const si  = document.getElementById("tab-signin");
+  const su  = document.getElementById("tab-signup");
   const btn = document.getElementById("auth-submit");
   const ft  = document.getElementById("auth-footer-text");
+  const fpl = document.getElementById("forgot-pw-link");
   const on  = "2px solid var(--accent)", off = "2px solid transparent";
   if (mode === "signin") {
     si.style.borderBottom = on;  si.style.color = "var(--text)";
     su.style.borderBottom = off; su.style.color = "var(--text-dim)";
     btn.textContent = "Sign In";
     ft.innerHTML = "Don&#39;t have an account? <a href='#' onclick=\"authTab('signup');return false;\" style='color:var(--accent);'>Create one free</a>";
+    if (fpl) fpl.style.display = "block";
   } else {
     su.style.borderBottom = on;  su.style.color = "var(--text)";
     si.style.borderBottom = off; si.style.color = "var(--text-dim)";
     btn.textContent = "Create Account";
     ft.innerHTML = "Already have an account? <a href='#' onclick=\"authTab('signin');return false;\" style='color:var(--accent);'>Sign in</a>";
+    if (fpl) fpl.style.display = "none";
   }
   document.getElementById("auth-error").style.display   = "none";
   document.getElementById("auth-success").style.display = "none";
@@ -2299,6 +2325,144 @@ async function authSubmit() {
 document.addEventListener("keydown", function(e) {
   if (e.key === "Escape") { closeAuthModal(); closeHistoryModal(); }
 });
+
+// ── Forgot Password panel ───────────────────────────────────────────────────
+function _syncForgotSubmitBtn() {
+  const btn = document.getElementById("forgot-submit");
+  if (!btn) return;
+  btn.disabled = !_forgotCaptchaToken;
+  btn.style.opacity = _forgotCaptchaToken ? "1" : "0.5";
+  btn.style.cursor  = _forgotCaptchaToken ? "pointer" : "not-allowed";
+}
+
+function _renderForgotTurnstile() {
+  const container = document.getElementById("auth-forgot-turnstile");
+  if (!container || typeof turnstile === "undefined") return;
+  if (_forgotTurnstileId !== null) {
+    turnstile.reset(_forgotTurnstileId);
+    _forgotCaptchaToken = null;
+    _syncForgotSubmitBtn();
+    return;
+  }
+  _forgotTurnstileId = turnstile.render(container, {
+    sitekey: _TURNSTILE_SITE_KEY,
+    theme: "dark",
+    callback: function(token) { _forgotCaptchaToken = token; _syncForgotSubmitBtn(); },
+    "expired-callback": function() { _forgotCaptchaToken = null; _syncForgotSubmitBtn(); },
+    "error-callback":   function() { _forgotCaptchaToken = null; _syncForgotSubmitBtn(); },
+  });
+}
+
+function showForgotPanel() {
+  document.getElementById("auth-tabs-row").style.display    = "none";
+  document.getElementById("auth-main-body").style.display   = "none";
+  document.getElementById("auth-error").style.display       = "none";
+  document.getElementById("auth-success").style.display     = "none";
+  document.getElementById("auth-footer-text").style.display = "none";
+  document.getElementById("auth-forgot-panel").style.display = "block";
+  setTimeout(function() {
+    document.getElementById("forgot-email").focus();
+    _renderForgotTurnstile();
+  }, 50);
+}
+
+function hideForgotPanel() {
+  document.getElementById("auth-forgot-panel").style.display   = "none";
+  document.getElementById("auth-forgot-error").style.display   = "none";
+  document.getElementById("auth-forgot-success").style.display = "none";
+  document.getElementById("auth-tabs-row").style.display    = "";
+  document.getElementById("auth-main-body").style.display   = "";
+  document.getElementById("auth-footer-text").style.display = "";
+  var fe = document.getElementById("forgot-email");
+  if (fe) fe.value = "";
+  _forgotCaptchaToken = null;
+  if (_forgotTurnstileId !== null && typeof turnstile !== "undefined") turnstile.reset(_forgotTurnstileId);
+}
+
+async function forgotSubmit() {
+  var email = document.getElementById("forgot-email").value.trim();
+  var btn   = document.getElementById("forgot-submit");
+  var err   = document.getElementById("auth-forgot-error");
+  var ok    = document.getElementById("auth-forgot-success");
+  err.style.display = "none";
+  ok.style.display  = "none";
+  if (!email) {
+    err.textContent = "Please enter your email address.";
+    err.style.display = "block";
+    return;
+  }
+  if (!_forgotCaptchaToken) {
+    err.textContent = "Please complete the security check.";
+    err.style.display = "block";
+    return;
+  }
+  btn.disabled    = true;
+  btn.textContent = "Sending...";
+  var captchaToken = _forgotCaptchaToken;
+  var _ref = await _supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://firewalliq.io/reset-password',
+    captchaToken: captchaToken,
+  });
+  if (_ref.error) {
+    err.textContent = _ref.error.message || "Failed to send reset email. Please try again.";
+    err.style.display = "block";
+    _forgotCaptchaToken = null;
+    if (_forgotTurnstileId !== null && typeof turnstile !== "undefined") turnstile.reset(_forgotTurnstileId);
+    _syncForgotSubmitBtn();
+    btn.disabled    = false;
+    btn.textContent = "Send Reset Link";
+    return;
+  }
+  ok.textContent = "Check your email for a password reset link. It may take a minute to arrive.";
+  ok.style.display  = "block";
+  btn.disabled    = true;
+  btn.textContent = "Sent";
+}
+
+// ── Reset Password page ─────────────────────────────────────────────────────
+function showRpMsg(msg, isError) {
+  var err = document.getElementById("rp-error");
+  var ok  = document.getElementById("rp-success");
+  if (isError) { err.textContent = msg; err.style.display = "block"; ok.style.display  = "none"; }
+  else         { ok.textContent  = msg; ok.style.display  = "block"; err.style.display = "none"; }
+}
+
+function showResetPasswordPage() {
+  _waitingForRecovery = true;
+  document.getElementById("reset-password-modal").style.display = "flex";
+  document.getElementById("rp-loading").style.display = "block";
+  document.getElementById("rp-form").style.display    = "none";
+  document.getElementById("rp-invalid").style.display = "none";
+  setTimeout(function() {
+    if (_waitingForRecovery) {
+      _waitingForRecovery = false;
+      document.getElementById("rp-loading").style.display = "none";
+      document.getElementById("rp-invalid").style.display = "block";
+    }
+  }, 2500);
+}
+
+async function resetPasswordSubmit() {
+  var newPw  = document.getElementById("rp-password").value;
+  var confPw = document.getElementById("rp-confirm").value;
+  var btn    = document.getElementById("rp-submit");
+  if (!newPw || !confPw) { showRpMsg("Both fields are required.", true); return; }
+  if (newPw.length < 8)  { showRpMsg("Password must be at least 8 characters.", true); return; }
+  if (newPw !== confPw)  { showRpMsg("Passwords do not match.", true); return; }
+  btn.disabled    = true;
+  btn.textContent = "Updating...";
+  var _ref = await _supabase.auth.updateUser({ password: newPw });
+  if (_ref.error) {
+    showRpMsg(_ref.error.message || "Failed to update password. Please try again.", true);
+    btn.disabled    = false;
+    btn.textContent = "Set New Password";
+    return;
+  }
+  showRpMsg("Your password has been updated. You can now log in with your new password.", false);
+  btn.disabled    = true;
+  btn.textContent = "Done";
+  setTimeout(function() { window.location.href = "/"; }, 3000);
+}
 
 
   // ── Stat counter animation on scroll ──
@@ -2521,9 +2685,9 @@ function renderHistoryRows(rows) {
   <!-- ── Auth Modal ── -->
   <div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(4,12,22,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:400px;margin:16px;position:relative;box-shadow:0 24px 64px rgba(0,0,0,0.5);">
-      <button onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text-faint);font-size:20px;cursor:pointer;line-height:1;padding:4px;">✕</button>
+      <button onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text-faint);font-size:20px;cursor:pointer;line-height:1;padding:4px;">&#x2715;</button>
 
-      <div style="display:flex;gap:0;margin-bottom:28px;border-bottom:1px solid var(--border);">
+      <div id="auth-tabs-row" style="display:flex;gap:0;margin-bottom:28px;border-bottom:1px solid var(--border);">
         <button id="tab-signin" onclick="authTab('signin')"
           style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--text);font-family:var(--display);font-weight:600;font-size:14px;cursor:pointer;">
           Sign In
@@ -2537,7 +2701,7 @@ function renderHistoryRows(rows) {
       <div id="auth-error"   style="display:none;background:rgba(240,71,106,0.1);border:1px solid rgba(240,71,106,0.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--crit);line-height:1.5;"></div>
       <div id="auth-success" style="display:none;background:rgba(43,212,160,0.1);border:1px solid rgba(43,212,160,0.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--pass);line-height:1.5;"></div>
 
-      <div style="display:flex;flex-direction:column;gap:14px;">
+      <div id="auth-main-body" style="display:flex;flex-direction:column;gap:14px;">
         <div>
           <label style="font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:block;margin-bottom:6px;">Email</label>
           <input id="auth-email" type="email" placeholder="you@company.com"
@@ -2552,6 +2716,9 @@ function renderHistoryRows(rows) {
             style="width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s;"
             onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
         </div>
+        <div id="forgot-pw-link" style="text-align:right;margin-top:-4px;">
+          <a href="#" onclick="showForgotPanel();return false;" style="font-family:var(--mono);font-size:11px;color:var(--accent);text-decoration:none;">Forgot your password?</a>
+        </div>
         <div id="auth-turnstile" style="min-height:65px;display:flex;align-items:center;justify-content:center;"></div>
         <button id="auth-submit" onclick="authSubmit()"
           style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:10px;color:#04121e;font-family:var(--display);font-weight:700;font-size:15px;cursor:pointer;margin-top:4px;transition:opacity .15s;"
@@ -2562,6 +2729,83 @@ function renderHistoryRows(rows) {
       <p id="auth-footer-text" style="text-align:center;font-size:12px;color:var(--text-faint);margin:18px 0 0;font-family:var(--mono);">
         Don't have an account? <a href="#" onclick="authTab('signup');return false;" style="color:var(--accent);">Create one free</a>
       </p>
+
+      <!-- ── Forgot Password panel (shown in place of main form) ── -->
+      <div id="auth-forgot-panel" style="display:none;">
+        <div style="margin-bottom:20px;">
+          <h3 style="font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);margin:0 0 8px;">Reset Password</h3>
+          <p style="font-family:var(--sans);font-size:13px;color:var(--text-dim);margin:0;line-height:1.6;">Enter your email and we'll send you a link to reset your password.</p>
+        </div>
+        <div id="auth-forgot-error"   style="display:none;background:rgba(240,71,106,0.1);border:1px solid rgba(240,71,106,0.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--crit);line-height:1.5;"></div>
+        <div id="auth-forgot-success" style="display:none;background:rgba(43,212,160,0.1);border:1px solid rgba(43,212,160,0.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--pass);line-height:1.5;"></div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:block;margin-bottom:6px;">Email</label>
+            <input id="forgot-email" type="email" placeholder="you@company.com"
+              onkeydown="if(event.key==='Enter')forgotSubmit()"
+              style="width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+          <div id="auth-forgot-turnstile" style="min-height:65px;display:flex;align-items:center;justify-content:center;"></div>
+          <button id="forgot-submit" onclick="forgotSubmit()" disabled
+            style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:10px;color:#04121e;font-family:var(--display);font-weight:700;font-size:15px;cursor:not-allowed;margin-top:4px;transition:opacity .15s;opacity:0.5;"
+            onmouseover="if(!this.disabled)this.style.opacity='.88'" onmouseout="if(!this.disabled)this.style.opacity='1'">
+            Send Reset Link
+          </button>
+        </div>
+        <p style="text-align:center;font-size:12px;color:var(--text-faint);margin:18px 0 0;font-family:var(--mono);">
+          <a href="#" onclick="hideForgotPanel();return false;" style="color:var(--accent);">Back to sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Reset Password Page Overlay ── -->
+  <div id="reset-password-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(4,12,22,0.97);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:420px;margin:16px;box-shadow:0 24px 64px rgba(0,0,0,0.6);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+        <div style="width:34px;height:34px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#04121e" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+        </div>
+        <h2 style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--text);margin:0;">Set New Password</h2>
+      </div>
+
+      <div id="rp-loading" style="text-align:center;padding:16px 0 24px;">
+        <p style="font-family:var(--mono);font-size:13px;color:var(--text-dim);margin:0;">Verifying reset link...</p>
+      </div>
+
+      <div id="rp-invalid" style="display:none;">
+        <div style="background:rgba(240,71,106,0.1);border:1px solid rgba(240,71,106,0.3);border-radius:8px;padding:14px 16px;margin-bottom:20px;">
+          <p style="font-family:var(--sans);font-size:13px;color:var(--crit);line-height:1.6;margin:0;">This reset link is invalid or has expired. Please request a new one.</p>
+        </div>
+        <a href="/" style="display:block;text-align:center;font-family:var(--mono);font-size:12px;color:var(--accent);text-decoration:none;">Return to sign in</a>
+      </div>
+
+      <div id="rp-form" style="display:none;">
+        <div id="rp-error"   style="display:none;background:rgba(240,71,106,0.1);border:1px solid rgba(240,71,106,0.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--crit);line-height:1.5;"></div>
+        <div id="rp-success" style="display:none;background:rgba(43,212,160,0.1);border:1px solid rgba(43,212,160,0.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--pass);line-height:1.5;"></div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:block;margin-bottom:6px;">New Password</label>
+            <input id="rp-password" type="password" placeholder="Min. 8 characters"
+              onkeydown="if(event.key==='Enter')resetPasswordSubmit()"
+              style="width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+          <div>
+            <label style="font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:block;margin-bottom:6px;">Confirm Password</label>
+            <input id="rp-confirm" type="password" placeholder="Repeat your new password"
+              onkeydown="if(event.key==='Enter')resetPasswordSubmit()"
+              style="width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+          <button id="rp-submit" onclick="resetPasswordSubmit()"
+            style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:10px;color:#04121e;font-family:var(--display);font-weight:700;font-size:15px;cursor:pointer;margin-top:4px;transition:opacity .15s;"
+            onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+            Set New Password
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
