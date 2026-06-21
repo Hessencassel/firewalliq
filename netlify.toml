@@ -2,6 +2,32 @@
   publish = "."
   functions = "netlify/functions"
 
+# ── Security headers ──────────────────────────────────────────
+# Applied to every response served by Netlify (HTML, JS, CSS, fonts, etc.).
+#
+# CSP notes:
+#   script-src: 'unsafe-inline' covers the inline <script> blocks throughout
+#     the static HTML pages. cdn.jsdelivr.net serves the Supabase JS client.
+#   style-src:  'unsafe-inline' covers inline <style> blocks.
+#     fonts.googleapis.com serves the Google Fonts CSS import.
+#   font-src:   fonts.gstatic.com serves the actual Google Font binary files.
+#   connect-src: *.supabase.co for auth and database. api.anthropic.com is
+#     called server-side from the audit Netlify function, not from the browser,
+#     but is included here for defence-in-depth should the call path change.
+#   Stripe: checkout is server-side only (function returns a URL, browser
+#     navigates via window.location.href -- navigation is not covered by CSP).
+#     No Stripe.js is loaded client-side so no stripe.com domains are needed.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    X-Frame-Options            = "DENY"
+    X-Content-Type-Options     = "nosniff"
+    Referrer-Policy            = "strict-origin-when-cross-origin"
+    Permissions-Policy         = "camera=(), microphone=(), geolocation=(), payment=(self)"
+    Content-Security-Policy    = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://*.supabase.co https://api.anthropic.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; form-action 'self'; base-uri 'self'"
+
 [build.environment]
   NODE_VERSION = "20"
 
