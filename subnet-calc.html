@@ -215,6 +215,11 @@
   .result-val.warn   { color: var(--med); }
   .result-val.dim    { color: var(--text-dim); }
   .result-val.small  { font-size: 12px; }
+  .result-hint {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-faint); margin: 6px 0 0;
+    line-height: 1.5; letter-spacing: 0.01em;
+  }
 
   /* ── Mode 2 split table ── */
   .split-result-hd {
@@ -834,7 +839,8 @@ function renderDetails(d) {
                                                                             cls: "pass",               wide: false },
     { label: "Total hosts",         value: fmt(d.totalHosts),              cls: "",                   wide: false },
     { label: "Usable hosts",        value: fmt(d.usableHosts),             cls: "",                   wide: false },
-    { label: "IP class",            value: "Class " + d.ipClass,           cls: "dim",                wide: false },
+    { label: "IP class",            value: "Class " + d.ipClass,           cls: "dim",                wide: false,
+      hint: "IP class is determined by the first octet of the address, not the prefix length." },
     { label: "Address scope",       value: d.scope,                        cls: d.scope.indexOf("Public") !== -1 ? "warn" : "pass", wide: false },
     { label: "Supernet (one up)",   value: d.supernet,                     cls: "dim",                wide: false },
     { label: "Subnet mask (binary)", value: d.binaryMask,                  cls: "small",              wide: true  }
@@ -847,6 +853,7 @@ function renderDetails(d) {
     return '<div class="' + cardCls + '">' +
              '<span class="result-lbl">' + esc(c.label) + '</span>' +
              '<p class="' + valCls + '">' + esc(c.value) + '</p>' +
+             (c.hint ? '<p class="result-hint">' + esc(c.hint) + '</p>' : '') +
            '</div>';
   }).join("");
 
