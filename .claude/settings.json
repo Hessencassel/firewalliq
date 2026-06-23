@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/chris/OneDrive/Desktop/VPN Builder/src/**)",
+      "Read(//c/Users/chris/OneDrive/Desktop/VPN Builder/**)",
+      "Bash(git -C \"c:/Users/chris/OneDrive/Desktop/VPN Builder\" remote -v)",
+      "Bash(git -C \"c:/Users/chris/OneDrive/Desktop/VPN Builder\" status)",
+      "Bash(npm run *)",
+      "Bash(git -C \"c:/Users/chris/OneDrive/Desktop/Websites/firewalliq\" add netlify.toml)",
+      "Bash(git -C c:/Users/chris/OneDrive/Desktop/Websites/firewalliq commit -m ' *)",
+      "Bash(git -C \"c:/Users/chris/OneDrive/Desktop/Websites/firewalliq\" push origin main)",
+      "Bash(git -C \"c:/Users/chris/OneDrive/Desktop/VPN Builder\" add netlify.toml)",
+      "Bash(git -C 'c:/Users/chris/OneDrive/Desktop/VPN Builder' commit -m ' *)",
+      "Bash(git -C \"c:/Users/chris/OneDrive/Desktop/VPN Builder\" push origin main)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\chris\\OneDrive\\Desktop\\VPN Builder"
+    ]
+  }
+}
