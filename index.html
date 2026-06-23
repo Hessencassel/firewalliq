@@ -40,7 +40,7 @@
 
   * { box-sizing: border-box; }
 
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; overflow-x: hidden; }
 
   body {
     margin: 0;
@@ -55,9 +55,10 @@
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
+    overflow-x: hidden;
   }
 
-  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+  .wrap { max-width: 1100px; margin-left: auto; margin-right: auto; padding-left: 20px; padding-right: 20px; box-sizing: border-box; width: 100%; }
 
   /* ── Top Nav ── */
   .topnav {
@@ -920,6 +921,11 @@
 
   @media (max-width: 640px) {
     .nav-text-links { display: none; }
+    .nav-history-btn { display: none; }
+    #history-mobile-link { display: inline-block; }
+    .nav-inner { flex-wrap: nowrap; gap: 8px; }
+    .nav-cta { white-space: nowrap; flex-shrink: 0; }
+    .wrap { padding-left: 16px; padding-right: 16px; }
     .hero { padding: 60px 0 56px; }
     .hero-sub { font-size: 16px; }
     .stats-row { flex-direction: column; gap: 36px; }
@@ -1199,9 +1205,10 @@
         </a>
         <div class="identity-bar" id="identity-bar" style="margin-left:auto;display:flex;align-items:center;gap:12px;">
           <span id="user-email" style="font-family:var(--mono);font-size:12px;color:var(--text-faint);"></span>
-          <button id="history-nav-btn" onclick="openHistoryFromNav()" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">History</button>
+          <button id="history-nav-btn" class="nav-history-btn" onclick="openHistoryFromNav()" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">History</button>
           <button id="login-btn" style="font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log in</button>
           <button id="logout-btn" style="display:none;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:7px;cursor:pointer;">Log out</button>
+          <a id="history-mobile-link" href="#" onclick="openHistoryFromNav();return false;" style="display:none;font-family:var(--mono);font-size:12px;color:var(--accent);text-decoration:none;padding:6px 4px;">History</a>
         </div>
         <div class="nav-text-links">
           <a href="#features">Features</a>
